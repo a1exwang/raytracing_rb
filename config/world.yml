@@ -1,0 +1,17 @@
+ambient_light:  [0.3, 0.1, 0.1]
+
+world_objects:
+  -
+    type:       Sphere
+    properties:
+      name:     big sphere
+      center:   [4, 0, 0]
+      radius:   0.5
+      color:    [1, 1, 1]
+  -
+    type:       Sphere
+    properties:
+      name:     small sphere
+      center:   [3, 2, 0]
+      radius:   0.3
+      color:    [0.3, 0.2, 1]
