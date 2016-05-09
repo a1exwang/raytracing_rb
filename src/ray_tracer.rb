@@ -1,4 +1,5 @@
 require_relative 'libs/algebra'
+require 'matrix'
 
 module Alex
   class RayTracer
@@ -10,7 +11,7 @@ module Alex
       # map
       queue = Queue.new
       light_queue = Queue.new
-      queue.enq({ type: :ray, ray: ray })
+      queue.enq({ type: :ray, ray: ray, trace_depth: @trace_depth, attenuation: Matrix[[1,0,0],[0,1,0],[0,0,1]] })
       begin
         item = queue.deq
         rays, lights = rt_map(item)
@@ -29,12 +30,34 @@ module Alex
     end
 
     def rt_map(rt_ray)
-      [
-          # rays
-          [],
-          # lights
-          [{ type: :light, color: @world.ambient_light }]
-      ]
+      ret = [[], []]
+      return ret if rt_ray[:trace_depth] <= 0
+
+      # intersection
+      object, intersection = @world.intersect(rt_ray[:ray])
+      if object
+        p = object.intersect_parameters(rt_ray[:ray], intersection)
+        n = p[:n]
+        reflection = p[:reflection]
+
+        # reflection
+        reflection = {
+            type:         :ray,
+            ray:          reflection,
+            trace_depth:  rt_ray[:trace_depth] - 1,
+            attenuation:  rt_ray[:attenuation] *
+                object.reflect_attenuation(rt_ray[:ray], intersection, n, reflection)
+        }
+
+        ret.first << reflection
+      end
+
+
+      # ambient light
+      ambient = { type: :light, color: @world.ambient_light }
+      ret.last << ambient
+
+      ret
     end
 
     def rt_reduce(rt_light1, rt_light2)
