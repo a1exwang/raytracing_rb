@@ -14,25 +14,29 @@ module Alex
 
     attr_accessor :image_distance
     attr_accessor :viewport_width, :viewport_height
+    attr_accessor :trace_depth
     def initialize(world, config_file)
       @width = 0
       @height = 0
 
       super(config_file)
       @world = world
-      @ray_tracer = RayTracer.new(world, 5)
+      @ray_tracer = RayTracer.new(world, self.trace_depth)
     end
 
     def render(file_name)
-      canvas = PNG::Canvas.new(@width, @height)
+      canvas = PNG::Canvas.new(@width, @height, PNG::Color::Black)
 
+      i = 0
       @width.times do |x|
         @height.times do |y|
           #puts "rendering #{x}, #{y}"
           ray = lens_func(x, y)
           color_vec = @ray_tracer.trace(x, y, ray)
           canvas.point(x, y, vector_to_color(color_vec))
+          i += 1
         end
+        puts "Progress: #{(i.to_f / @width / @height * 100).round(2)}%" if i % 400 == 0
       end
 
       png = PNG.new canvas
@@ -41,7 +45,7 @@ module Alex
 
     private
     def lens_func(x, y)
-      eye = self.position + self.front * self.image_distance
+      eye = self.position - self.front * self.image_distance
       screen_pos =
           self.position +
               (x.to_f / self.width - 0.5) * self.viewport_width * self.up.normalize +

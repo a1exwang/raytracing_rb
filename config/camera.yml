@@ -1,4 +1,4 @@
-position: [1, 2, 3]
+position: [0, 0, 0]
 up:       [0, 0, 1]
 front:    [1, 0, 0]
 
@@ -6,6 +6,7 @@ image_distance:   4
 viewport_width:   4
 viewport_height:  3
 
-width:    200
-height:   200
+width:    400
+height:   300
 
+trace_depth:    3

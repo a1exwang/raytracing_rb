@@ -11,16 +11,17 @@ module Alex
         end
       end
 
-      def intersect(ray)
-        nil
-      end
+      # def intersect(ray)
+      #   puts 'world object intersect'
+      #   nil
+      # end
 
       private
 
-      def get_reflection_by_ray_and_n(ray, n)
+      def get_reflection_by_ray_and_n(ray, n, intersection)
         cos_theta = ray.front.normalize.dot(n.normalize)
-        front = 2 * cos_theta * ray.front.normalize * n + ray.front
-        Ray.new(front, ray.position)
+        front = 2 * cos_theta * ray.front.r * n + ray.front
+        Ray.new(front, intersection)
       end
     end
   end
