@@ -21,18 +21,18 @@ module Alex
 
       super(config_file)
       @world = world
-      @ray_tracer = RayTracer.new(world, self.trace_depth)
+      @ray_tracer = RayTracer.new(world, self.trace_depth, @width, @height)
     end
 
-    def render(file_name)
+    def render_sync(file_name)
       canvas = PNG::Canvas.new(@width, @height, PNG::Color::Black)
 
       i = 0
       @width.times do |x|
         @height.times do |y|
-          #puts "rendering #{x}, #{y}"
           ray = lens_func(x, y)
-          color_vec = @ray_tracer.trace(x, y, ray)
+          color_vec = @ray_tracer.trace_sync(x, y, ray)
+          #puts "#{x}, #{y} #{color_vec}" if x == 40
           canvas.point(x, y, vector_to_color(color_vec))
           i += 1
         end
@@ -43,13 +43,33 @@ module Alex
       png.save file_name
     end
 
+    def render(file_name)
+      canvas = PNG::Canvas.new(@width, @height, PNG::Color::Black)
+
+      i = 0
+      @width.times do |x|
+        @height.times do |y|
+          ray = lens_func(x, y)
+          @ray_tracer.trace(x, y, ray)
+          i += 1
+        end
+        puts "Progress: #{(i.to_f / @width / @height * 100).round(2)}%" if i % 400 == 0
+      end
+      sleep 1000
+      #canvas.point(x, y, vector_to_color(color_vec))
+
+      png = PNG.new canvas
+      png.save file_name
+    end
+
     private
     def lens_func(x, y)
       eye = self.position - self.front * self.image_distance
+      left = (self.up.cross(self.front)).normalize
       screen_pos =
           self.position +
-              (x.to_f / self.width - 0.5) * self.viewport_width * self.up.normalize +
-              (y.to_f / self.height - 0.5) * self.viewport_height * (self.up.cross(self.front)).normalize
+              2 * (0.5 - x.to_f / self.width) * self.viewport_width * left +
+              2 * (y.to_f / self.height - 0.5) * self.viewport_height * self.up.normalize
       Ray.new(screen_pos - eye, screen_pos)
     end
 

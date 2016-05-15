@@ -8,7 +8,7 @@ include Alex
 
 world = World.new 'config/world.yml'
 camera = Camera.new world, 'config/camera.yml'
-camera.render 'image.png'
+camera.render_sync 'image.png'
 
 # result = RubyProf.stop
 #

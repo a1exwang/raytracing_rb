@@ -1,6 +1,6 @@
 
 max_distance:   100
-ambient_light:  [0.02, 0.02, 0.02]
+ambient_light:  [0.01, 0.01, 0.01]
 
 
 lights:
@@ -8,27 +8,39 @@ lights:
     type:               Spot
     properties:
       name:             Main
-      position:         [5, 2, 10]
+      position:         [-1, 0, 2]
       radius:           0.01
-      color:            [0.6, 0.6, 0.6]
-      diffusion_rate:   0.3
+      color:            [0.7, 0.7, 0.7]
       high_light_rate:  1
       high_light_angle: 10
 
 world_objects:
   -
+    type:                         Plane
+    properties:
+      name:                       ground
+      point:                      [0, 0, -4]
+      front:                      [0, 0, 1]
+      refractive_rate:            1.5
+      reflective_attenuation:     [1, 0.1, 1]
+      diffuse_rate:               [1, 0.1, 1]
+  -
     type:                         Sphere
     properties:
       name:                       big sphere
-      center:                     [4, 0, 0]
-      radius:                     0.5
+      center:                     [2, 0, 0]
+      radius:                     1.5
       refractive_rate:            1.5
-      reflective_attenuation:     [0.5, 0.5, 0.5]
+      reflective_attenuation:     [0.8, 0.8, 0.8]
+      refractive_attenuation:     [0.8, 0.8, 0.8]
+      diffuse_rate:               [0.3, 0.3, 0.3]
   -
     type:                         Sphere
     properties:
       name:                       small sphere
-      center:                     [3, 2, 0]
-      radius:                     0.4
+      center:                     [3, 2.5, 0]
+      radius:                     1
       refractive_rate:            1.5
-      reflective_attenuation:     [0.5, 0.5, 0.5]
+      reflective_attenuation:     [0.8, 0.8, 0.8]
+      refractive_attenuation:     [0.8, 0.8, 0.8]
+      diffuse_rate:               [0.3, 0.3, 0.3]

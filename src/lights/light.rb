@@ -1,6 +1,6 @@
 module Alex::Lights
   class Light
-    attr_accessor :position, :name, :color, :diffusion_rate
+    attr_accessor :position, :name, :color
     attr_accessor :high_light_rate, :high_light_angle
 
     def initialize(hash)

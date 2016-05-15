@@ -1,6 +1,8 @@
 require_relative 'configurable_object'
 
 require_relative 'objects/sphere'
+require_relative 'objects/plane'
+
 require_relative 'lights/spot_light'
 
 module Alex
@@ -35,24 +37,33 @@ module Alex
       nearest_obj = nil
       nearest_dis = self.max_distance
       nearest_intersection = nil
+      nearest_direction = nil
       @world_objects.each do |obj|
-        intersection = obj.intersect(ray)
+        intersection, direction = obj.intersect(ray)
         if intersection
           new_dis = ray.distance(intersection)
           if new_dis < nearest_dis
             nearest_dis = new_dis
             nearest_obj = obj
             nearest_intersection = intersection
+            nearest_direction = direction
           end
         end
       end
-      [nearest_obj, nearest_intersection]
+      [nearest_obj, nearest_intersection, nearest_direction]
     end
 
     # 两点之间是否有物体
     def can_go_through?(start, pos, object)
-      obj, inter = intersect(Ray.new(pos - start, start))
-      obj == nil || obj ==  object
+      ray = Alex::Ray.new(start - pos, pos)
+      @world_objects.each do |obj|
+        intersection, direction = obj.intersect(ray)
+        # make sure the intersection is between start and pos
+        if intersection && (start - intersection).dot(pos - intersection) < 0
+          return false
+        end
+      end
+      true
     end
 
     # 获得对某点的diffusion有贡献的所有光源
@@ -60,17 +71,20 @@ module Alex
       ret = []
       @lights.each do |light|
         if can_go_through?(position, light.position, object)
-          ret << [light, light.color * light.diffusion_rate]
+          ret << [light, light.color]
         end
       end
       ret
     end
 
-    # 对某条光线会产生高光的光源
+    # 获得某条光线直接射到的光源
     def high_lights(ray, object)
       ret = []
       @lights.each do |light|
-        ang = ray.front.angle_with(ray.position - light.position)
+        cos_theta = ray.front.normalize.dot((light.position - ray.position).normalize)
+        cos_theta = -1 if cos_theta < -1
+        cos_theta = 1 if cos_theta > 1
+        ang = Math.acos(cos_theta)
         #puts "angle: #{ang}"
         if ang < (light.high_light_angle / 180.0 * Math::PI) &&
             can_go_through?(ray.position, light.position, object)
