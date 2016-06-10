@@ -5,10 +5,15 @@ require 'matrix'
 module Alex
   module Objects
     class Sphere < WorldObject
-      attr_accessor :center, :radius
+      attr_accessor :center, :radius, :north_pole, :greenwich
       attr_accessor :color
       attr_accessor :name
       attr_accessor :reflective_attenuation, :refractive_attenuation, :refractive_rate
+      attr_accessor :texture_file
+
+      def vector_to_texture(vector)
+        v1 = vector - north_pole
+      end
 
       # 球和射线的第一个交点
       def intersect(ray)

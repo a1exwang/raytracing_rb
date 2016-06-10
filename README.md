@@ -3,3 +3,10 @@
 - ~~black dot~~
 - ~~光线从球内无法射出(折射)~~
 - ~~get_reflection_by_ray_and_n, intersection - front * EPISILON反而减少了黑点~~
+
+# TODOs
+- texture
+- 软阴影
+- 抗锯齿
+- 速度优化
+- mesh

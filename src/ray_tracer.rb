@@ -1,4 +1,5 @@
 require_relative 'libs/algebra'
+require_relative '../logger'
 require 'matrix'
 
 module Alex
@@ -9,68 +10,19 @@ module Alex
       @queue = []
       @light_queues = Array.new(width) { Array.new(height) { Queue.new } }
       @queue_size = 0
-      #@qs_lock = Mutex.new
-      # @threads = Array.new(4) do |i|
-      #   Thread.new do
-      #     loop do
-      #       item = @queue.deq
-      #       #@qs_lock.synchronize { @queue_size -= 1 }
-      #
-      #       x, y = item[:x], item[:y]
-      #       results = [item]
-      #       1.times do
-      #         new_results = []
-      #         results.each do |r|
-      #           rays, lights = rt_map(r)
-      #           new_results += rays
-      #           lights.each { |l| @light_queues[x][y].enq [x, y, l[:color]] }
-      #         end
-      #         results = new_results
-      #       end
-      #       results.each { |r| @queue.enq r }
-      #     end
-      #   end
-      # end
-
-    #   @reducers = Array.new(1) do |i|
-    #     Thread.new do
-    #       loop do
-    #         busy = false
-    #         @light_queues.each do |q|
-    #           unless q.empty?
-    #             x, y, item = q.deq
-    #             @sums[x][y] = rt_reduce(@sums[x][y], item)
-    #             busy = true
-    #           end
-    #         end
-    #         puts "reducer #{i} is not busy not!" unless busy
-    #       end
-    #     end
-    #   end
-    #   @sums = Array.new(width) { Array.new(height) { Vector[0, 0, 0] }}
-    end
-
-    # 反向跟踪屏幕x, y点上射入相机的光线
-    def trace(x, y, ray)
-      # map
-      @queue.enq(
-          type: :root,
-          ray: ray,
-          trace_depth: @trace_depth,
-          attenuation: Matrix.identity(3),
-          x:  x,
-          y:  y
-      )
-      #@qs_lock.synchronize { @queue_size += 1 }
     end
 
     def trace_sync(x, y, ray)
+      root_obj = Object.new
+      def root_obj.name
+        'root'
+      end
       @queue << {
           type: :root,
           ray: ray,
           trace_depth: @trace_depth,
           attenuation: Matrix.identity(3),
-          object: { name: 'root' },
+          object: root_obj,
           x:  x,
           y:  y,
           str: "root for #{x}, #{y}"
@@ -113,18 +65,19 @@ module Alex
 
       # 首先判断是不是直接射到光源
       # high light
-      @world.high_lights(rt_ray[:ray], rt_ray[:object]).each do |_light, color|
+      lights = @world.high_lights(rt_ray[:ray], rt_ray[:object])
+      lights.each do |light, color|
+        LOG.logt('rt_map', "high_light: from(#{light.name}), to(#{rt_ray[:object]&.name})", 4)
         ret.last << {
             type: :high_light,
-            color: color,
+            color: rt_ray[:attenuation] * color / lights.size,
             x: rt_ray[:x],
             y: rt_ray[:y],
             parent: rt_ray,
-            str: "highlight on #{_light.name}",
+            str: "highlight on #{light.name}",
             trace_depth: rt_ray[:trace_depth] - 1
         }
       end
-      #puts "high light from #{rt_ray[:object]&.name} to lights" if ret.last.size > 0
 
       # 如果是高光项, 那么不可能再传播
       return ret if ret.last.size > 0
@@ -132,6 +85,11 @@ module Alex
       # intersection
       object, intersection, direction = @world.intersect(rt_ray[:ray])
       if object
+        reflection_energy_rate = 0.3 #0.4
+        refraction_energy_rate = 0.0
+        diffusion_energy_rate =  0.3 #0.2
+        ambient_energy_rate =    0.01
+
         p = object.intersect_parameters(rt_ray[:ray], intersection, direction)
         n = p[:n]
         reflection_ray = p[:reflection]
@@ -141,6 +99,9 @@ module Alex
 
         # reflection
         if reflection_ray
+          LOG.logt('rt_map', "reflection: from(#{rt_ray[:parent] ? rt_ray[:parent][:object].name : 'root'})\n" +
+              "to(#{object.name})\n" +
+              "direction(#{reflection_ray.front})", 4)
           reflection = {
               type:         :ray,
               ray:          reflection_ray,
@@ -148,7 +109,7 @@ module Alex
               x:            rt_ray[:x],
               y:            rt_ray[:y],
               object:       object,
-              attenuation:  rt_ray[:attenuation] * att_reflect,
+              attenuation:  rt_ray[:attenuation] * att_reflect * reflection_energy_rate,
               parent:       rt_ray,
               str:          "reflect on #{object.name}"
                   #object.reflect_attenuation(rt_ray[:ray], intersection, n, reflection_ray)
@@ -157,7 +118,9 @@ module Alex
         end
 
         if refraction_ray
-          #puts "refraction on #{object.name}, direction: #{direction}, att: #{att_refract[0,0]}"
+          LOG.logt('rt_map', "refraction: from(#{rt_ray[:parent] ? rt_ray[:parent][:object]&.name : 'root'})\n" +
+                             "to(#{object.name})\n" +
+                             "direction(#{refraction_ray.front})", 4)
           refraction = {
               type:         :ray,
               ray:          refraction_ray,
@@ -165,7 +128,7 @@ module Alex
               x:            rt_ray[:x],
               y:            rt_ray[:y],
               object:       object,
-              attenuation:  rt_ray[:attenuation] * att_refract,
+              attenuation:  rt_ray[:attenuation] * att_refract * refraction_energy_rate,
               parent:       rt_ray,
               str:          "refract on #{object.name}"
           }
@@ -173,14 +136,16 @@ module Alex
         end
 
         # diffusion
-        @world.diffused_lights(rt_ray[:ray].position, object).each do |_light, color|
+        lights = @world.diffused_lights(rt_ray[:ray].position, object)
+        lights.each do |light, color|
+          LOG.logt('rt_map', "diffusion: light(#{light.name}), object(#{object.name})", 4)
           ret.last << {
               type: :diffusion,
-              color: object.diffuse(color, intersection),
+              color: rt_ray[:attenuation] * object.diffuse(color, intersection) * diffusion_energy_rate / lights.size,
               x: rt_ray[:x],
               y: rt_ray[:y],
               parent: rt_ray,
-              str: "diffuse on object(#{object.name}) with light(#{_light.name})",
+              str: "diffuse on object(#{object.name}) with light(#{light.name})",
               trace_depth: rt_ray[:trace_depth] - 1
           }
         end
@@ -188,42 +153,40 @@ module Alex
         # ambient light
         ambient = {
             type: :ambient,
-            color: @world.ambient_light,
+            color: rt_ray[:attenuation] * @world.ambient_light * ambient_energy_rate,
             x: rt_ray[:x],
             y: rt_ray[:y],
             parent: rt_ray,
             str: "ambient on #{object.name}",
             trace_depth: rt_ray[:trace_depth] - 1
         }
+        LOG.logt('rt_map', "ambient: object(#{object.name})", 4)
         ret.last << ambient
+      else
+        LOG.logt('rt_map', "light_dead: (x, y) = #{[rt_ray[:x], rt_ray[:y]]}, direction = #{rt_ray[:ray].front.to_a.map { |x| x.round(3) }}")
       end
-      #
-      # if rt_ray[:x] == 40
-      #   if rt_ray[:type] == :root && object
-      #       puts "\t(#{rt_ray[:x]}, #{rt_ray[:y]}) #{object.name} #{intersection} #{direction}"
-      #   end
-      #
-      #   #puts ret.first
-      #   puts ret.last
-      # end
-
       ret
     end
 
     # 混合颜色值
     def rt_reduce(rt_light1, rt_light2)
-      mix_color(rt_light1, rt_light2)
+      ret = mix_color(rt_light1, rt_light2)
+      unless ret.to_a.map { |x| x <= 1 }.reduce(true, &:'&')
+        raise "color greater than 1, #{ret}"
+      end
+      ret
     end
 
     private
     # 混合两个颜色值
     def mix_color(c1, c2)
-      x = 1 - 1 / (Math::E ** (Math.log(1/(1-c1[0])) + Math.log(1/(1-c2[0]))) / Math.log(Math::E))
-      y = 1 - 1 / (Math::E ** (Math.log(1/(1-c1[1])) + Math.log(1/(1-c2[1]))) / Math.log(Math::E))
-      z = 1 - 1 / (Math::E ** (Math.log(1/(1-c1[2])) + Math.log(1/(1-c2[2]))) / Math.log(Math::E))
-      Vector[x, y, z]
+      # x = 1 - 1 / (Math::E ** (Math.log(1/(1-c1[0])) + Math.log(1/(1-c2[0]))) / Math.log(Math::E))
+      # y = 1 - 1 / (Math::E ** (Math.log(1/(1-c1[1])) + Math.log(1/(1-c2[1]))) / Math.log(Math::E))
+      # z = 1 - 1 / (Math::E ** (Math.log(1/(1-c1[2])) + Math.log(1/(1-c2[2]))) / Math.log(Math::E))
+      # Vector[x, y, z]
       # v = c1 + c2
       # Vector[v[0] > 1 ? 1 : v[0], v[1] > 1 ? 1 : v[1], v[2] > 1 ? 1 : v[2]]
+      c1 + c2
     end
 
   end
