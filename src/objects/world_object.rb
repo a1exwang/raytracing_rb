@@ -5,6 +5,7 @@ module Alex
     class WorldObject
       attr_accessor :reflective, :refractive
       attr_accessor :refractive_attenuation, :reflective_attenuation, :diffuse_rate
+      attr_accessor :texture
 
       def initialize(hash)
         hash.each do |key, value|
@@ -33,10 +34,6 @@ module Alex
         ]
       end
 
-      def diffuse(color)
-        color
-      end
-
       def reflect_refract_matrix(ray, intersection, n, reflect, refract)
         return nil unless reflect
         i = ray.front.angle_with(-n)
@@ -57,12 +54,15 @@ module Alex
         ]
       end
 
-      private
+      def diffuse(light_color, position)
+        light_color
+      end
 
+      private
       def get_reflection_by_ray_and_n(ray, n, intersection)
-        cos_theta = ray.front.normalize.dot(n.normalize)
-        front = 2 * cos_theta * ray.front.r * n + ray.front
-        Ray.new(front, intersection)
+        cos_theta = -ray.front.normalize.dot(n.normalize)
+        front = (2 * cos_theta * ray.front.r * n + ray.front).normalize
+        Ray.new(front, intersection + front * Alex::EPSILON)
       end
 
       def get_refraction_by_ray_and_n(ray, n, intersection, reflection, refraction_rate)
@@ -71,8 +71,8 @@ module Alex
         sin_theta = sin_i / refraction_rate
         return nil if sin_theta >= 1
         theta = Math.asin(sin_theta)
-        Ray.new((1 / refraction_rate * (ray.front.dot(n) - Math.cos(theta)) * n) - 1 / refraction_rate * ray.front,
-            intersection)
+        refraction_direction = ((ray.front.dot(n) - Math.cos(theta)) * n / refraction_rate - ray.front / refraction_rate).normalize
+        Ray.new(refraction_direction, intersection + refraction_direction * Alex::EPSILON)
       end
     end
   end

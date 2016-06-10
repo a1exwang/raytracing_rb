@@ -3,10 +3,10 @@ up:       [0, 0, 1]
 front:    [1, 0, 0]
 
 image_distance:   4
-viewport_width:   4
-viewport_height:  3
+viewport_width:   1.92
+viewport_height:  1.08
 
-width:    400
-height:   300
+width:    192
+height:   108
 
-trace_depth:    4
+trace_depth:    6

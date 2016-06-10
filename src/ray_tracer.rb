@@ -6,10 +6,10 @@ module Alex
     def initialize(world, trace_depth, width, height)
       @world = world
       @trace_depth = trace_depth
-      @queue = Queue.new
+      @queue = []
       @light_queues = Array.new(width) { Array.new(height) { Queue.new } }
       @queue_size = 0
-      @qs_lock = Mutex.new
+      #@qs_lock = Mutex.new
       # @threads = Array.new(4) do |i|
       #   Thread.new do
       #     loop do
@@ -65,27 +65,41 @@ module Alex
     end
 
     def trace_sync(x, y, ray)
-      @queue.enq(
+      @queue << {
           type: :root,
           ray: ray,
           trace_depth: @trace_depth,
           attenuation: Matrix.identity(3),
           object: { name: 'root' },
           x:  x,
-          y:  y
-      )
+          y:  y,
+          str: "root for #{x}, #{y}"
+      }
       until @queue.empty?
-        item = @queue.deq
+        item = @queue.pop
         x, y = item[:x], item[:y]
         rays, lights = rt_map(item)
-        lights.each { |l| @light_queues[x][y] << [x, y, l[:color]] }
+        lights.each { |l| @light_queues[x][y] << [x, y, l] }
         rays.each { |r| @queue << r }
       end
 
       @sum = Vector[0, 0, 0]
       until @light_queues[x][y].empty?
-        x, y, item = @light_queues[x][y].deq
-        @sum = rt_reduce(@sum, item)
+        x, y, item = @light_queues[x][y].pop
+        if x == 100 && y == 40 && item[:type] != :ambient
+          tmp = item
+          chain = []
+          puts "#{x}, #{y}"
+          while tmp
+            chain << tmp
+            tmp = tmp[:parent]
+          end
+          chain.reverse.each do |c|
+            puts "\tdepth:#{c[:trace_depth]}, #{c[:str]}"
+          end
+          puts
+        end
+        @sum = rt_reduce(@sum, item[:color])
       end
 
       @sum
@@ -100,7 +114,15 @@ module Alex
       # 首先判断是不是直接射到光源
       # high light
       @world.high_lights(rt_ray[:ray], rt_ray[:object]).each do |_light, color|
-        ret.last << { type: :high_light, color: color, x: rt_ray[:x], y: rt_ray[:y] }
+        ret.last << {
+            type: :high_light,
+            color: color,
+            x: rt_ray[:x],
+            y: rt_ray[:y],
+            parent: rt_ray,
+            str: "highlight on #{_light.name}",
+            trace_depth: rt_ray[:trace_depth] - 1
+        }
       end
       #puts "high light from #{rt_ray[:object]&.name} to lights" if ret.last.size > 0
 
@@ -126,14 +148,16 @@ module Alex
               x:            rt_ray[:x],
               y:            rt_ray[:y],
               object:       object,
-              attenuation:  rt_ray[:attenuation] * att_reflect
+              attenuation:  rt_ray[:attenuation] * att_reflect,
+              parent:       rt_ray,
+              str:          "reflect on #{object.name}"
                   #object.reflect_attenuation(rt_ray[:ray], intersection, n, reflection_ray)
           }
           ret.first << reflection
         end
 
         if refraction_ray
-          puts "refraction on #{object.name}, direction: #{direction}, att: #{att_refract[0,0]}"
+          #puts "refraction on #{object.name}, direction: #{direction}, att: #{att_refract[0,0]}"
           refraction = {
               type:         :ray,
               ray:          refraction_ray,
@@ -141,30 +165,47 @@ module Alex
               x:            rt_ray[:x],
               y:            rt_ray[:y],
               object:       object,
-              attenuation:  rt_ray[:attenuation] * att_refract
-                  #object.refraction_attenuation(rt_ray[:ray], intersection, n, refraction_ray)
+              attenuation:  rt_ray[:attenuation] * att_refract,
+              parent:       rt_ray,
+              str:          "refract on #{object.name}"
           }
           ret.first << refraction
         end
 
         # diffusion
         @world.diffused_lights(rt_ray[:ray].position, object).each do |_light, color|
-          ret.last << { type: :diffusion, color: object.diffuse(color), x: rt_ray[:x], y: rt_ray[:y] }
+          ret.last << {
+              type: :diffusion,
+              color: object.diffuse(color, intersection),
+              x: rt_ray[:x],
+              y: rt_ray[:y],
+              parent: rt_ray,
+              str: "diffuse on object(#{object.name}) with light(#{_light.name})",
+              trace_depth: rt_ray[:trace_depth] - 1
+          }
         end
 
         # ambient light
-        ambient = { type: :ambient, color: @world.ambient_light, x: rt_ray[:x], y: rt_ray[:y] }
+        ambient = {
+            type: :ambient,
+            color: @world.ambient_light,
+            x: rt_ray[:x],
+            y: rt_ray[:y],
+            parent: rt_ray,
+            str: "ambient on #{object.name}",
+            trace_depth: rt_ray[:trace_depth] - 1
+        }
         ret.last << ambient
       end
-
-      if rt_ray[:x] == 40
-        if rt_ray[:type] == :root && object
-            puts "(#{rt_ray[:x]}, #{rt_ray[:y]}) #{object.name} #{intersection} #{direction}"
-        end
-
-        #puts ret.first
-        puts ret.last
-      end
+      #
+      # if rt_ray[:x] == 40
+      #   if rt_ray[:type] == :root && object
+      #       puts "\t(#{rt_ray[:x]}, #{rt_ray[:y]}) #{object.name} #{intersection} #{direction}"
+      #   end
+      #
+      #   #puts ret.first
+      #   puts ret.last
+      # end
 
       ret
     end
@@ -181,8 +222,8 @@ module Alex
       y = 1 - 1 / (Math::E ** (Math.log(1/(1-c1[1])) + Math.log(1/(1-c2[1]))) / Math.log(Math::E))
       z = 1 - 1 / (Math::E ** (Math.log(1/(1-c1[2])) + Math.log(1/(1-c2[2]))) / Math.log(Math::E))
       Vector[x, y, z]
-      #v = c1 + c2
-      #Vector[v[0] > 1 ? 1 : v[0], v[1] > 1 ? 1 : v[1], v[2] > 1 ? 1 : v[2]]
+      # v = c1 + c2
+      # Vector[v[0] > 1 ? 1 : v[0], v[1] > 1 ? 1 : v[1], v[2] > 1 ? 1 : v[2]]
     end
 
   end

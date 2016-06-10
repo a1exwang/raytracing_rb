@@ -1,6 +1,6 @@
 require_relative 'camera'
 require_relative 'world'
-require 'facets'
+#require 'facets'
 include Alex
 
 # require 'ruby-prof'

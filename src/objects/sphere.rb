@@ -16,27 +16,33 @@ module Alex
         t = - (ray.position - self.center).dot(ray.front) / ray.front.r ** 2
         v = t * ray.front
         nearest_point = ray.position + v
-        direction = nil
-
-        # 检查最近点是否在光线正方向
-        return [nil, nil] if v.dot(ray.front) < 0
 
         # 如果最近点在球内, 则有交点
-        nearest_dis = (nearest_point - self.center).r
-        intersection = nil
-        if nearest_dis > self.radius
-          intersection = nil
-        elsif nearest_dis == self.radius
-          intersection = nearest_point
-        else
-          nearest_point_to_intersection = Math.sqrt(self.radius ** 2 - nearest_dis ** 2)
-          intersection = nearest_point -
-              nearest_point_to_intersection * ray.front.normalize
+        unless inner?(nearest_point)
+          return nil
         end
+        nearest_dis = (nearest_point - self.center).r
+        nearest_point_to_intersection = Math.sqrt(self.radius ** 2 - nearest_dis ** 2)
 
-        # 检查交点的方向
-        if intersection
-          direction = (intersection - self.center).dot(ray.front) < 0 ? :in : :out
+        # 检查最近点是否在光线正方向
+
+        intersection = nil
+        direction = nil
+
+        # t > 0 一定有交点
+        if t > 0
+          if inner?(ray.position)
+            intersection = nearest_point - nearest_point_to_intersection * ray.front.normalize
+            direction = :out
+          else
+            intersection = nearest_point + nearest_point_to_intersection * ray.front.normalize
+            direction = :in
+          end
+        else # t < 0
+          if inner?(ray.position)
+            intersection = nearest_point - nearest_point_to_intersection * ray.front.normalize
+            direction = :out
+          end
         end
 
         [intersection, direction]
@@ -57,14 +63,12 @@ module Alex
       end
 
       def inner?(position)
-        (position - self.position).r <= self.radius
+        (position - self.center).r <= self.radius
       end
 
       def surface?(position)
-        ((position - self.position).r - self.radius) < Alex::EPSILON
+        ((position - self.center).r - self.radius) < Alex::EPSILON
       end
-
-
     end
   end
 end

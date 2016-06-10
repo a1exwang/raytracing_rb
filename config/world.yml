@@ -8,11 +8,11 @@ lights:
     type:               Spot
     properties:
       name:             Main
-      position:         [-1, 0, 2]
+      position:         [-1, -1, 2.5]
       radius:           0.01
-      color:            [0.7, 0.7, 0.7]
+      color:            [0.8, 0.8, 0.8]
       high_light_rate:  1
-      high_light_angle: 10
+      high_light_angle: 3
 
 world_objects:
   -
@@ -21,26 +21,68 @@ world_objects:
       name:                       ground
       point:                      [0, 0, -4]
       front:                      [0, 0, 1]
-      refractive_rate:            1.5
-      reflective_attenuation:     [1, 0.1, 1]
-      diffuse_rate:               [1, 0.1, 1]
+      diffuse_rate:               [1, 0, 0]
+      texture:                    grids
+  -
+    type:                         Plane
+    properties:
+      name:                       sky
+      point:                      [0, 0, 4]
+      front:                      [0, 0, -1]
+      diffuse_rate:               [1, 0, 1]
+      texture:                    none
+  -
+    type:                         Plane
+    properties:
+      name:                       right wall
+      point:                      [0, -10, 0]
+      front:                      [0, 1, 0]
+      diffuse_rate:               [1, 1, 1]
+      texture:                    none
+  -
+    type:                         Plane
+    properties:
+      name:                       left wall
+      point:                      [0, 10, 0]
+      front:                      [0, -1, 0]
+      diffuse_rate:               [1, 1, 1]
+      texture:                    none
+  -
+    type:                         Plane
+    properties:
+      name:                       front wall
+      point:                      [20, 0, 0]
+      front:                      [-1, 0, 0]
+      diffuse_rate:               [0, 0, 1]
+      texture:                    grids
+#  -
+#    type:                         Plane
+#    properties:
+#      name:                       back wall
+#      point:                      [-5, 0, 0]
+#      front:                      [1, 0, 0]
+#      refractive_rate:            1.5
+#      reflective_attenuation:     [1, 0.1, 1]
+#      diffuse_rate:               [1, 1, 1]
+#      texture:                    none
   -
     type:                         Sphere
     properties:
       name:                       big sphere
       center:                     [2, 0, 0]
-      radius:                     1.5
-      refractive_rate:            1.5
-      reflective_attenuation:     [0.8, 0.8, 0.8]
-      refractive_attenuation:     [0.8, 0.8, 0.8]
+      radius:                     0.8
+      refractive_rate:            1.1
+      reflective_attenuation:     [0, 0.8, 0.8]
+      refractive_attenuation:     [0.8, 0, 0]
       diffuse_rate:               [0.3, 0.3, 0.3]
   -
     type:                         Sphere
     properties:
       name:                       small sphere
-      center:                     [3, 2.5, 0]
-      radius:                     1
-      refractive_rate:            1.5
-      reflective_attenuation:     [0.8, 0.8, 0.8]
-      refractive_attenuation:     [0.8, 0.8, 0.8]
+      center:                     [6, 1, 0]
+      radius:                     0.5
+      refractive_rate:            1.1
+      reflective_attenuation:     [0, 0.8, 0.8]
+      refractive_attenuation:     [0.8, 0, 0]
       diffuse_rate:               [0.3, 0.3, 0.3]
+

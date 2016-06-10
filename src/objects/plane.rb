@@ -8,6 +8,11 @@ module Alex
       attr_accessor :point, :front
       attr_accessor :name
       attr_accessor :reflective_attenuation, :refractive_attenuation, :refractive_rate
+      attr_accessor :texture
+      def initialize(h)
+        super(h)
+      end
+
       def intersect(ray)
         # 算出直线和平面的交点
         t = (self.point - ray.position).dot(self.front) / (self.front.dot(ray.front))
@@ -44,13 +49,35 @@ module Alex
         position == self.point || (position - self.point).normalize.dot(self.front.normalize).abs < Alex::EPSILON
       end
 
-      def diffuse(color)
+      def diffuse(color, position)
+        k = 1
+        if self.texture == 'grids'
+          i = position[0].to_i
+          j = position[1].to_i
+          # puts "Z: #{position[2]}"
+          k = (i + j) % 2 == 0 ? 1 : 0.3
+          # puts "grid diffusion: i, j: #{i}, #{j}"
+        end
+
         Vector[
-          color[0] * self.diffuse_rate[0],
-          color[1] * self.diffuse_rate[1],
-          color[2] * self.diffuse_rate[2]
+          color[0] * self.diffuse_rate[0] * k,
+          color[1] * self.diffuse_rate[1] * k,
+          color[2] * self.diffuse_rate[2] * k
         ]
       end
+
+      # def reflect_refract_matrix(ray, intersection, n, reflect, refract)
+      #   return nil unless reflect
+      #
+      #   i = intersection[0].to_i
+      #   j = intersection[1].to_i
+      #   k = (i + j) % 2 == 0 ? 1 : 0
+      #
+      #   [
+      #       Matrix[[k, 0, 0], [0, k, 0], [0, 0, k]],
+      #       Matrix.zero(3, 3)
+      #   ]
+      # end
     end
   end
 end
