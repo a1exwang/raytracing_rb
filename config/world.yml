@@ -8,7 +8,7 @@ lights:
     type:               Spot
     properties:
       name:             Main
-      position:         [3, 3, 3]
+      position:         [1, 0, 3]
       radius:           0.04
       color:            [1, 1, 1]
       high_light_rate:  1
@@ -21,38 +21,16 @@ world_objects:
       name:                       ground
       point:                      [0, 0, -4]
       front:                      [0, 0, 1]
+      up:                         [1, 0, 0]
       diffuse_rate:               [0.8, 0.8, 0]
       texture:                    grids
-#  -
-#    type:                         Plane
-#    properties:
-#      name:                       sky
-#      point:                      [0, 0, 4]
-#      front:                      [0, 0, -1]
-#      diffuse_rate:               [1, 0, 1]
-#      texture:                    none
-#  -
-#    type:                         Plane
-#    properties:
-#      name:                       right wall
-#      point:                      [0, -10, 0]
-#      front:                      [0, 1, 0]
-#      diffuse_rate:               [1, 1, 1]
-#      texture:                    none
-#  -
-#    type:                         Plane
-#    properties:
-#      name:                       left wall
-#      point:                      [0, 10, 0]
-#      front:                      [0, -1, 0]
-#      diffuse_rate:               [1, 1, 1]
-#      texture:                    none
   -
     type:                         Plane
     properties:
       name:                       front wall
       point:                      [50, 0, 0]
       front:                      [-1, 0, 0]
+      up:                         [0, 1, 0]
       diffuse_rate:               [0, 0.7, 1]
       texture:                    none
 #  -

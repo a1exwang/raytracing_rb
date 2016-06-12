@@ -171,7 +171,8 @@ module Alex
 
     def vector_to_color(vec)
       raise 'color vector not 3-dimension' unless vec.size == 3
-      PNG::Color.new *(vec*255)
+      x, y, z = (vec*1.8*255).to_a
+      PNG::Color.new([x, 255].min, [y, 255].min, [z, 255].min)
     end
   end
 end

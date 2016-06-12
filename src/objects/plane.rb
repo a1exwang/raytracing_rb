@@ -5,7 +5,7 @@ require 'matrix'
 module Alex
   module Objects
     class Plane < WorldObject
-      attr_accessor :point, :front
+      attr_accessor :point, :front, :up
       attr_accessor :name
       attr_accessor :reflective_attenuation, :refractive_attenuation, :refractive_rate
       attr_accessor :texture
@@ -54,9 +54,7 @@ module Alex
         if self.texture == 'grids'
           i = position[0].to_i
           j = position[1].to_i
-          # puts "Z: #{position[2]}"
           k = (i + j) % 2 == 0 ? 1 : 0.3
-          # puts "grid diffusion: i, j: #{i}, #{j}"
         end
 
         Vector[
