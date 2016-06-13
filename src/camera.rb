@@ -6,6 +6,7 @@ require_relative '../lib/fast_4d_matrix/fast_4d_matrix'
 require 'png'
 require 'matrix'
 require 'yaml'
+require 'json'
 
 include Fast4DMatrix
 
@@ -31,55 +32,14 @@ module Alex
       @ray_tracer = RayTracer.new(world, self.trace_depth, @width, @height)
     end
 
-    def render_line_parallel(file_name)
-      #canvas = PNG::Canvas.new(@width, @height, PNG::Color::Black)
-
-      pixels = Array.new(@width) { |i| Array.new(@height) }
-
-      j = 0
-      j_lock = Mutex.new
-      queue = Queue.new
-      threads = Array.new(THREAD_COUNT) do |i|
-        Thread.new do
-          loop do
-            x = queue.deq
-            break if x == -1
-
-            @height.times do |y|
-              ray = lens_func(x, y)
-              color_vec = @ray_tracer.trace_sync(x, y, ray)
-              #puts "#{x}, #{y} #{color_vec}" if x == 40
-              pixels[x][y] = color_vec
-            end
-
-            j_lock.synchronize do
-              j += @height
-              puts "Progress: #{(j.to_f / @width / @height * 100).round(2)}%" if j % @width == 0
-            end
-          end
-        end
-      end
-
-      @width.times do |x|
-        queue.enq x
-      end
-      THREAD_COUNT.times { |i| queue.enq -1 }
-
-      threads.each { |t| t.join }
-
-      puts pixels
-      # png = PNG.new canvas
-      # png.save file_name
-    end
-
     def render_fork(file_name)
       parent_work = lambda do
         canvas = PNG::Canvas.new(@width, @height, PNG::Color::Black)
         4.times do |i|
-          data = Marshal.load(File.read("out/file_#{i}"))
+          data = JSON.parse(File.read("out/file_#{i}.json"))
           data.each do |x, v|
             v.each do |y, color|
-              canvas.point(x, y, vector_to_color(color))
+              canvas.point(x, y, vector_to_color(Vec3.from_a(*color)))
             end
           end
         end
@@ -100,10 +60,10 @@ module Alex
             sample_times.times do
               color_vec += @ray_tracer.trace_sync(x, y, ray)
             end
-            data[x][y] = color_vec / sample_times
+            data[x][y] = color_vec / sample_times.to_f
           end
         end
-        File.write("out/file_#{i}", Marshal.dump(data))
+        File.write("out/file_#{i}.json", data.to_json)
       end
 
       fork_jobs(4, parent_work, &child_work)
@@ -121,7 +81,7 @@ module Alex
           sample_times.times do
             color_vec += @ray_tracer.trace_sync(x, y, ray)
           end
-          canvas.point(x, y, vector_to_color(color_vec / sample_times.to_f))
+          canvas.point(x, @height - 1 - y, vector_to_color(color_vec / sample_times.to_f))
           i += 1
         end
         puts "Progress: #{(i.to_f / @width / @height * 100).round(2)}%" if i % 100 == 0
@@ -138,7 +98,7 @@ module Alex
       screen_pos =
           self.position +
               left * (2 * (0.5 - x.to_f / self.width) * self.retina_width)  +
-              self.up.normalize * (2 * (y.to_f / self.height - 0.5) * self.retina_height)
+              self.up.normalize * (2 * (0.5 - y.to_f / self.height) * self.retina_height)
       Ray.new(screen_pos - eye, screen_pos)
     end
 
@@ -153,7 +113,7 @@ module Alex
       retina_center = self.position - self.front.normalize * self.image_distance
       retina_position = retina_center +
           left * (2.0 * (x.to_f / self.width - 0.5) * self.retina_width) +
-          self.up.normalize * (2 * (0.5 - y.to_f / self.height) * self.retina_height)
+          self.up.normalize * (2 * (y.to_f / self.height - 0.5) * self.retina_height)
       theta = Random.rand
       rand_vector = (left.normalize * Math.cos(theta) + self.up.normalize * Math.sin(theta)) * self.aperture_radius
       aperture_position = self.position + rand_vector
@@ -174,7 +134,7 @@ module Alex
 
     def vector_to_color(vec)
       # raise 'color vector not 3-dimension' unless vec.size == 3
-      x, y, z = (vec*(1.8*255)).to_a
+      x, y, z = (vec*(1*255.0)).to_a
       PNG::Color.new([x, 255].min, [y, 255].min, [z, 255].min)
     end
   end

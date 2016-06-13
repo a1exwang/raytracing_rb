@@ -1,11 +1,18 @@
 def fork_jobs(jobs, parent_work, &child_work)
   threads = []
+  pids = []
   is_parent = true
   jobs.times do |i|
     pid = fork
     if pid
+      pids << pid
       threads << Thread.new do
-        Process.waitpid(pid)
+        begin
+          Process.waitpid(pid)
+        rescue Exception => e
+          Process.kill(9, pid)
+          raise e
+        end
       end
     else
       is_parent = false
@@ -14,7 +21,12 @@ def fork_jobs(jobs, parent_work, &child_work)
   end
 
   if is_parent
-    threads.each(&:join)
+    begin
+      threads.each(&:join)
+    rescue Exception => e
+      pids.each { |pid| Process.kill(9, pid) }
+      raise e
+    end
     parent_work.call
   end
 end

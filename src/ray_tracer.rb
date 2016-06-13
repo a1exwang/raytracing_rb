@@ -62,7 +62,7 @@ module Alex
     # 最终所有光线都变成了颜色值
     def rt_map(rt_ray)
       ret = [[], []]
-      return ret if rt_ray[:trace_depth] <= 0 #|| (rt_ray[:attenuation].reduce(0) { |sum, x| sum + x * x })
+      return ret if rt_ray[:trace_depth] <= 0 || rt_ray[:attenuation].r < 0.0001
 
       # # 首先判断是不是直接射到光源
       # # high light
@@ -82,39 +82,31 @@ module Alex
       #
       # # 如果是高光项, 那么不可能再传播
       # return ret if ret.last.size > 0
-      if rt_ray[:trace_depth] == 4 && rt_ray[:x] == 110 && rt_ray[:y] == 51
-        puts 123
-      end
 
       # intersection
-      object, intersection, direction = @world.intersect(rt_ray[:ray])
+      object, intersection, direction, delta = @world.intersect(rt_ray[:ray])
       if object
-        reflection_energy_rate = 0.3 #0.4
-        refraction_energy_rate = 0.0
-        diffusion_energy_rate =  0.3 #0.2
-        ambient_energy_rate =    0.01
-
-        p = object.intersect_parameters(rt_ray[:ray], intersection, direction)
+        p = object.intersect_parameters(rt_ray[:ray], intersection, direction, delta)
         n = p[:n]
         reflection_ray = p[:reflection]
         refraction_ray = p[:refraction]
 
-        att_reflect, att_refract = object.reflect_refract_matrix(rt_ray[:ray], intersection, n, reflection_ray, refraction_ray)
+        att_reflect, att_refract = object.reflect_refract_vector(rt_ray[:ray], intersection, n, reflection_ray, refraction_ray)
 
         # reflection
         if reflection_ray
-          LOG.logt('rt_map', "reflection: position(#{[rt_ray[:x], rt_ray[:y]]})\n" +
-              "from(#{rt_ray[:parent] ? rt_ray[:parent][:object].name : 'root'})\n" +
+          LOG.logt('rt_map', "reflection: depth: #{rt_ray[:trace_depth]}, position(#{[rt_ray[:x], rt_ray[:y]]})\n" +
+              "from(#{rt_ray[:type]}, #{rt_ray[:object]&.name})\n" +
               "on(#{object.name})\n" +
               "to direction(#{reflection_ray.front.to_s})")
           reflection = {
-              type:         :ray,
+              type:         :reflection,
               ray:          reflection_ray,
               trace_depth:  rt_ray[:trace_depth] - 1,
               x:            rt_ray[:x],
               y:            rt_ray[:y],
               object:       object,
-              attenuation:  rt_ray[:attenuation] * att_reflect * reflection_energy_rate,
+              attenuation:  rt_ray[:attenuation] * att_reflect,
               parent:       rt_ray,
               str:          "reflect on #{object.name}"
                   #object.reflect_attenuation(rt_ray[:ray], intersection, n, reflection_ray)
@@ -122,32 +114,34 @@ module Alex
           ret.first << reflection
         end
 
-        # if refraction_ray
-        #   LOG.logt('rt_map', "refraction: from(#{rt_ray[:parent] ? rt_ray[:parent][:object]&.name : 'root'})\n" +
-        #                      "to(#{object.name})\n" +
-        #                      "direction(#{refraction_ray.front})", 4)
-        #   refraction = {
-        #       type:         :ray,
-        #       ray:          refraction_ray,
-        #       trace_depth:  rt_ray[:trace_depth] - 1,
-        #       x:            rt_ray[:x],
-        #       y:            rt_ray[:y],
-        #       object:       object,
-        #       attenuation:  rt_ray[:attenuation] * att_refract * refraction_energy_rate,
-        #       parent:       rt_ray,
-        #       str:          "refract on #{object.name}"
-        #   }
-        #   ret.first << refraction
-        # end
+        if refraction_ray
+          LOG.logt('rt_map', "refraction: depth: #{rt_ray[:trace_depth]}, position(#{[rt_ray[:x], rt_ray[:y]]})\n" +
+              "from(#{rt_ray[:type]}, #{rt_ray[:object]&.name})\n" +
+              "on(#{object.name}, #{intersection})\n" +
+              "to direction(#{refraction_ray.front})")
+          refraction = {
+              type:         :refraction,
+              ray:          refraction_ray,
+              trace_depth:  rt_ray[:trace_depth] - 1,
+              x:            rt_ray[:x],
+              y:            rt_ray[:y],
+              object:       object,
+              attenuation:  rt_ray[:attenuation] * att_refract,
+              parent:       rt_ray,
+              str:          "refract on #{object.name}"
+          }
+          ret.first << refraction
+        end
 
         # diffusion
-        lights = @world.diffused_lights(intersection, object)
+        lights = @world.diffused_lights(intersection + delta, object)
         lights.each do |light, color|
-          LOG.logt('rt_map', "diffusion:  position(#{[rt_ray[:x], rt_ray[:y]]})\n" +
+          LOG.logt('rt_map', "diffusion: depth: #{rt_ray[:trace_depth]}, position(#{[rt_ray[:x], rt_ray[:y]]})\n" +
+              "from(#{rt_ray[:type]}, #{rt_ray[:object]&.name})\n" +
               "light(#{light.name}), object(#{object.name})")
           ret.last << {
               type: :diffusion,
-              color: rt_ray[:attenuation] * object.diffuse(color, intersection) * diffusion_energy_rate / lights.size.to_f,
+              color: rt_ray[:attenuation] * object.diffuse(color, intersection) / lights.size.to_f,
               x: rt_ray[:x],
               y: rt_ray[:y],
               parent: rt_ray,
@@ -156,10 +150,10 @@ module Alex
           }
         end
 
-        # ambient light
+        # # ambient light
         # ambient = {
         #     type: :ambient,
-        #     color: rt_ray[:attenuation] * @world.ambient_light * ambient_energy_rate,
+        #     color: rt_ray[:attenuation] * object.ambient,
         #     x: rt_ray[:x],
         #     y: rt_ray[:y],
         #     parent: rt_ray,
@@ -169,7 +163,7 @@ module Alex
         # LOG.logt('rt_map', "ambient: object(#{object.name})", 4)
         # ret.last << ambient
       else
-        LOG.logt('rt_map', "light_dead:  position(#{[rt_ray[:x], rt_ray[:y]]})\n" +
+        LOG.logt('rt_map', "light_dead: depth: #{rt_ray[:trace_depth]}, position(#{[rt_ray[:x], rt_ray[:y]]})\n" +
             "direction = #{rt_ray[:ray].front.to_a.map { |x| x.round(3) }}")
       end
       ret

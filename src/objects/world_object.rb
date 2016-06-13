@@ -6,7 +6,7 @@ module Alex
   module Objects
     class WorldObject
       attr_accessor :reflective, :refractive
-      attr_accessor :refractive_attenuation, :reflective_attenuation, :diffuse_rate
+      attr_accessor :refractive_attenuation, :reflective_attenuation, :diffuse_rate, :ambient
       attr_accessor :texture
 
       def initialize(hash)
@@ -16,62 +16,64 @@ module Alex
       end
 
       # 根据入射反射法线, 获得反射光线的衰减率
-      def reflect_attenuation(ray, intersection, n, reflect)
-        k = 1 #- ray.front.normalize.dot(n.normalize) ** 2
+      def get_reflect_attenuation(ray, intersection, n, reflect)
+        k = 0.9 #- ray.front.normalize.dot(n.normalize) ** 2
         r, g, b = (self.reflective_attenuation * k).to_a
         Vec3.from_a(r, g, b)
       end
 
-      def refraction_attenuation(ray, intersection, n, refract)
-        k = 1 #- ray.front.normalize.dot(n.normalize) ** 2
+      def get_refraction_attenuation(ray, intersection, n, refract)
+        k = 0.9 #- ray.front.normalize.dot(n.normalize) ** 2
         r, g, b = (self.refractive_attenuation * k).to_a
         Vec3.from_a(r, g, b)
       end
 
-      def reflect_refract_matrix(ray, intersection, n, reflect, refract)
+      def reflect_refract_vector(ray, intersection, n, reflect, refract)
         return nil unless reflect
-        i = Math.acos(ray.front.cos(-n))
-        if refract
-          k = 0.5 + 0.5 * Math.sin(i)
-          if k > 1
-            k = 1.0
-          end
-          kr = Math.sqrt(1 - k * k)
-        else
-          k = 1.0
-          kr = 0.0
-        end
+        # i = Math.acos(ray.front.cos(-n))
+        # if refract
+        #   k = 0.4 + 0.4 * Math.sin(i)
+        #   if k > 0.9
+        #     k = 0.9
+        #   end
+        #   kr = Math.sqrt(0.81 - k * k)
+        # else
+        #   k = 0.9
+        #   kr = 0.0
+        # end
 
-        [
-            Vec3.from_a(k, k, k),
-            Vec3.from_a(kr, kr, kr)
-        ]
+        # [
+        #     Vec3.from_a(k, k, k),
+        #     Vec3.from_a(kr, kr, kr)
+        # ]
+        # TODO 根据冯模型计算反射和折射强度
+        [self.reflective_attenuation, self.refractive_attenuation]
       end
 
       def diffuse(light_color, position)
-        light_color
+        light_color * self.diffuse_rate
       end
 
       private
-      def get_reflection_by_ray_and_n(ray, n, intersection)
-        cos_theta = -ray.front.cos(n)
+      def get_reflection_by_ray_and_n(ray, n, intersection, delta)
+        cos_theta = ray.front.cos(-n)
         if cos_theta == -1
-          Ray.new(ray.front, intersection + ray.front * Alex::EPSILON)
+          Ray.new(ray.front, intersection + delta)
         else
           front = (n * (2 * cos_theta * ray.front.r) + ray.front).normalize
-          Ray.new(front, intersection + front * Alex::EPSILON)
+          Ray.new(front, intersection + delta)
         end
 
       end
 
-      def get_refraction_by_ray_and_n(ray, n, intersection, reflection, refraction_rate)
+      def get_refraction_by_ray_and_n(ray, n, intersection, reflection, refraction_rate, delta)
         sin_i = Math.sqrt(1 - ray.front.cos(n)**2)
 
         sin_theta = sin_i / refraction_rate
         return nil if sin_theta >= 1
         theta = Math.asin(sin_theta)
         refraction_direction = (n * (ray.front.dot(n) - Math.cos(theta)) / refraction_rate - ray.front / refraction_rate).normalize
-        Ray.new(refraction_direction, intersection + refraction_direction * Alex::EPSILON)
+        Ray.new(refraction_direction, intersection - delta)
       end
     end
   end

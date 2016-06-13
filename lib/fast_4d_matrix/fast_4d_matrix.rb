@@ -1,3 +1,4 @@
+require 'json'
 module Fast4DMatrix
   class Vec3
     # method stub
@@ -17,6 +18,7 @@ module Fast4DMatrix
     def mul!(other); raise NotImplementedError; end
     def normalize;  raise NotImplementedError; end
     def normalize!; raise NotImplementedError; end
+    def to_json(param); to_a.to_json; end
   end
   class Matrix33
     # method stub
