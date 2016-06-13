@@ -28,7 +28,7 @@ module Alex
         end
         nearest_dis = (nearest_point - self.center).r
         nearest_point_to_intersection = Math.sqrt(self.radius ** 2 - nearest_dis ** 2)
-
+        vec = ray.front.normalize * nearest_point_to_intersection
         # 检查最近点是否在光线正方向
 
         intersection = nil
@@ -37,28 +37,33 @@ module Alex
         # t > 0 一定有交点
         if t > 0
           if inner?(ray.position)
-            intersection = nearest_point - ray.front.normalize * nearest_point_to_intersection
+            intersection = nearest_point + vec
             direction = :out
           else
-            intersection = nearest_point +  ray.front.normalize * nearest_point_to_intersection
+            intersection = nearest_point + vec
             direction = :in
           end
         else # t < 0
           if inner?(ray.position)
             intersection = nearest_point - ray.front.normalize * nearest_point_to_intersection
             direction = :out
+          else
+            return nil
           end
         end
 
-        [intersection + (intersection-self.center) * Alex::EPSILON, direction]
+        [intersection, direction, (intersection - self.center) * Alex::EPSILON * (direction == :in ? 1.0 : -1.0)]
       end
 
       # 根据球和射线的交点获取 法向量, 反射光线, 折射光线
-      def intersect_parameters(ray, intersection, direction)
+      def intersect_parameters(ray, intersection, direction, delta)
         n = intersection - self.center
-        reflection = get_reflection_by_ray_and_n(ray, n, intersection)
-        refraction = get_refraction_by_ray_and_n(ray, n, intersection, reflection.front,
-                                                 direction == :in ? self.refractive_rate : 1 / self.refractive_rate)
+        reflection = get_reflection_by_ray_and_n(ray, n, intersection, delta)
+        refraction = get_refraction_by_ray_and_n(ray, n, intersection,
+                                                 reflection.front,
+                                                 direction == :in ? self.refractive_rate : 1 / self.refractive_rate,
+                                                 delta
+        )
 
         {
             n: n,

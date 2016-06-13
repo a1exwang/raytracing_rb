@@ -38,8 +38,9 @@ module Alex
       nearest_dis = self.max_distance
       nearest_intersection = nil
       nearest_direction = nil
+      nearest_delta = nil
       @world_objects.each do |obj|
-        intersection, direction = obj.intersect(ray)
+        intersection, direction, delta = obj.intersect(ray)
         if intersection
           new_dis = ray.distance(intersection)
           if new_dis < nearest_dis
@@ -47,10 +48,11 @@ module Alex
             nearest_obj = obj
             nearest_intersection = intersection
             nearest_direction = direction
+            nearest_delta = delta
           end
         end
       end
-      [nearest_obj, nearest_intersection, nearest_direction]
+      [nearest_obj, nearest_intersection, nearest_direction, nearest_delta]
     end
 
     # 两点之间是否有物体

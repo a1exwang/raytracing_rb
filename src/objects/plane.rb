@@ -1,6 +1,7 @@
 require_relative 'world_object'
 require_relative '../libs/algebra'
 require_relative '../../lib/fast_4d_matrix/fast_4d_matrix'
+require_relative 'texture'
 
 module Alex
   module Objects
@@ -8,9 +9,17 @@ module Alex
       attr_accessor :point, :front, :up
       attr_accessor :name
       attr_accessor :reflective_attenuation, :refractive_attenuation, :refractive_rate
-      attr_accessor :texture
+      attr_accessor :texture_file_path, :texture_horizontal_scale, :texture_vertical_scale
+      attr_reader :texture
       def initialize(h)
         super(h)
+        if self.texture_file_path
+          init_texture(self.texture_file_path)
+        end
+      end
+
+      def init_texture(file_path)
+        @texture = Alex::Texture.new(file_path, self.texture_horizontal_scale, self.texture_vertical_scale)
       end
 
       def intersect(ray)
@@ -23,20 +32,20 @@ module Alex
 
         # 检查交点的方向
         direction = self.front.dot(ray.front) < 0 ? :in : :out
-        [intersection, direction]
+        [intersection, direction, self.front * Alex::EPSILON * (-self.front.dot(ray.front) <=> 0).to_f]
       end
 
       # 根据球和射线的交点获取 法向量, 反射光线, 折射光线
-      def intersect_parameters(ray, intersection, direction)
+      def intersect_parameters(ray, intersection, direction, delta)
         n = self.front
         if n.dot(ray.front) > 0
           n = -n
         end
         #
-        # reflection =  get_reflection_by_ray_and_n(ray, n, intersection)
+        reflection =  get_reflection_by_ray_and_n(ray, n, intersection, delta)
         {
             n: n,
-            reflection: nil,
+            reflection: reflection,
             refraction: nil
         }
       end
@@ -52,20 +61,14 @@ module Alex
       end
 
       def diffuse(color, position)
-        k = Vec3.from_a(1.0, 1.0, 1.0)
-        if self.texture == 'grids'
-          i = position.to_a[0].to_i
-          j = position.to_a[1].to_i
-          k = (i + j) % 2 == 0 ? 1.0 : 0.3
-          k = Vec3.from_a(k, k, k)
+        if self.texture
+          left = self.front.cross(self.up)
+          u = position.dot(left.normalize)
+          v = position.dot(self.up.normalize)
+          color * self.diffuse_rate * self.texture.color(u, v)
+        else
+          color * self.diffuse_rate
         end
-
-        color * self.diffuse_rate * k
-        # Vector[
-        #   color[0] * self.diffuse_rate[0] * k,
-        #   color[1] * self.diffuse_rate[1] * k,
-        #   color[2] * self.diffuse_rate[2] * k
-        # ]
       end
 
       # def reflect_refract_matrix(ray, intersection, n, reflect, refract)
