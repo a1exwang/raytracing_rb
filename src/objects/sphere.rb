@@ -18,8 +18,8 @@ module Alex
       # 球和射线的第一个交点
       def intersect(ray)
         # 算出直线上到球心最近的点
-        t = - (ray.position - self.center).dot(ray.front) / ray.front.r ** 2
-        v = t * ray.front
+        t = (self.center - ray.position).dot(ray.front) / ray.front.r2
+        v = ray.front * t
         nearest_point = ray.position + v
 
         # 如果最近点在球内, 则有交点
@@ -37,20 +37,20 @@ module Alex
         # t > 0 一定有交点
         if t > 0
           if inner?(ray.position)
-            intersection = nearest_point - nearest_point_to_intersection * ray.front.normalize
+            intersection = nearest_point - ray.front.normalize * nearest_point_to_intersection
             direction = :out
           else
-            intersection = nearest_point + nearest_point_to_intersection * ray.front.normalize
+            intersection = nearest_point +  ray.front.normalize * nearest_point_to_intersection
             direction = :in
           end
         else # t < 0
           if inner?(ray.position)
-            intersection = nearest_point - nearest_point_to_intersection * ray.front.normalize
+            intersection = nearest_point - ray.front.normalize * nearest_point_to_intersection
             direction = :out
           end
         end
 
-        [intersection, direction]
+        [intersection + (intersection-self.center) * Alex::EPSILON, direction]
       end
 
       # 根据球和射线的交点获取 法向量, 反射光线, 折射光线

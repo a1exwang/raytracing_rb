@@ -8,7 +8,7 @@ lights:
     type:               Spot
     properties:
       name:             Main
-      position:         [1, 0, 3]
+      position:         [6, 2, 0]
       radius:           0.04
       color:            [1, 1, 1]
       high_light_rate:  1
@@ -24,15 +24,15 @@ world_objects:
       up:                         [1, 0, 0]
       diffuse_rate:               [0.8, 0.8, 0]
       texture:                    grids
-  -
-    type:                         Plane
-    properties:
-      name:                       front wall
-      point:                      [50, 0, 0]
-      front:                      [-1, 0, 0]
-      up:                         [0, 1, 0]
-      diffuse_rate:               [0, 0.7, 1]
-      texture:                    none
+#  -
+#    type:                         Plane
+#    properties:
+#      name:                       front wall
+#      point:                      [50, 0, 0]
+#      front:                      [-1, 0, 0]
+#      up:                         [0, 1, 0]
+#      diffuse_rate:               [0, 0.7, 1]
+#      texture:                    none
 #  -
 #    type:                         Plane
 #    properties:
@@ -45,25 +45,25 @@ world_objects:
     type:                         Sphere
     properties:
       name:                       big sphere
-      center:                     [6, 1, -0.8]
-      north_pole:                 [6, 1, -0.3]
-      greenwich:                  [5.5, 1, -0.8]
+      center:                     [6, 0, 0]
+      north_pole:                 [6, 0, 0.5]
+      greenwich:                  [5.5, 0, 0]
       radius:                     0.5
       refractive_rate:            1.1
       reflective_attenuation:     [0.1, 0.1, 0.1]
-      refractive_attenuation:     [0.8, 0.8, 0]
+      refractive_attenuation:     [0.8, 0.8, 0.8]
       diffuse_rate:               [0.7, 0.7, 0.7]
 
-  -
-    type:                         Sphere
-    properties:
-      name:                       small sphere
-      center:                     [8, 0.2, 0.1]
-      north_pole:                 [8, 0.2, 0.4]
-      greenwich:                  [7.7, 0.2, 0.1]
-      radius:                     0.3
-      refractive_rate:            1.1
-      reflective_attenuation:     [0, 0.8, 0.8]
-      refractive_attenuation:     [0.8, 0.8, 0]
-      diffuse_rate:               [0.8, 0.8, 0.8]
+#  -
+#    type:                         Sphere
+#    properties:
+#      name:                       small sphere
+#      center:                     [8, 0.2, 0.1]
+#      north_pole:                 [8, 0.2, 0.4]
+#      greenwich:                  [7.7, 0.2, 0.1]
+#      radius:                     0.3
+#      refractive_rate:            1.1
+#      reflective_attenuation:     [0, 0.8, 0.8]
+#      refractive_attenuation:     [0.8, 0.8, 0]
+#      diffuse_rate:               [0.8, 0.8, 0.8]
 

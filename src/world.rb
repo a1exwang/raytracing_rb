@@ -81,18 +81,18 @@ module Alex
     def high_lights(ray, object)
       ret = []
       @lights.each do |light|
-        cos_theta = ray.front.normalize.dot((light.position - ray.position).normalize)
+        a = light.position - ray.position
+        cos_theta = ray.front.cos(a)
         cos_theta = -1 if cos_theta < -1
         cos_theta = 1 if cos_theta > 1
         ang = Math.acos(cos_theta)
         #puts "angle: #{ang}"
         if ang < (light.high_light_angle / 180.0 * Math::PI) &&
             can_go_through?(ray.position, light.position, object)
-          ret << [light, light.color * light.high_light_rate]
+          ret << [light, light.color * light.high_light_rate.to_f]
         end
       end
       ret
     end
-
   end
 end

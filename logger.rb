@@ -2,6 +2,7 @@ module Alex
   class Logger
     TAG_MAX_WIDTH = 16
     def initialize(target = nil, attr = 'w', use_lock = true)
+      @enabled = true
       if target.is_a?(String)
         @stream = File.open(target, attr)
       else
@@ -40,6 +41,7 @@ module Alex
       logt('', str, indent, level)
     end
     def logt(tag, str, indent = 0, level = 'verbose'.to_sym)
+      return unless @enabled
       str = @formatter.call(tag, str, indent, level)
       @lock&.lock
 
@@ -47,6 +49,9 @@ module Alex
       @stream.flush
 
       @lock&.unlock
+    end
+    def disable
+      @enabled = false
     end
   end
 end

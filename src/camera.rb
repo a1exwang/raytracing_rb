@@ -2,9 +2,12 @@ require_relative 'ray_tracer'
 require_relative 'libs/algebra'
 require_relative 'configurable_object'
 require_relative 'fork_jobs'
+require_relative '../lib/fast_4d_matrix/fast_4d_matrix'
 require 'png'
 require 'matrix'
 require 'yaml'
+
+include Fast4DMatrix
 
 module Alex
 
@@ -92,8 +95,8 @@ module Alex
           data[x] = {}
           (start_y...end_y).each do |y|
             ray = lens_func(x, y)
-            color_vec = Vector[0, 0, 0]
-            sample_times = 10
+            color_vec = Vec3.from_a(0.0, 0.0, 0.0)
+            sample_times = 1
             sample_times.times do
               color_vec += @ray_tracer.trace_sync(x, y, ray)
             end
@@ -113,12 +116,12 @@ module Alex
       @width.times do |x|
         @height.times do |y|
           ray = lens_func(x, y)
-          color_vec = Vector[0, 0, 0]
-          sample_times = 10
+          color_vec = Vec3.from_a(0.0, 0.0, 0.0)
+          sample_times = 1
           sample_times.times do
             color_vec += @ray_tracer.trace_sync(x, y, ray)
           end
-          canvas.point(x, y, vector_to_color(color_vec / sample_times))
+          canvas.point(x, y, vector_to_color(color_vec / sample_times.to_f))
           i += 1
         end
         puts "Progress: #{(i.to_f / @width / @height * 100).round(2)}%" if i % 100 == 0
@@ -129,29 +132,29 @@ module Alex
     end
 
     private
-    def lens_func2(x, y)
+    def lens_func(x, y)
       eye = self.position - self.front * self.image_distance
-      left = (self.up.cross(self.front)).normalize
+      left = self.up.cross(self.front).normalize
       screen_pos =
           self.position +
-              2 * (0.5 - x.to_f / self.width) * self.retina_width * left +
-              2 * (y.to_f / self.height - 0.5) * self.retina_height * self.up.normalize
+              left * (2 * (0.5 - x.to_f / self.width) * self.retina_width)  +
+              self.up.normalize * (2 * (y.to_f / self.height - 0.5) * self.retina_height)
       Ray.new(screen_pos - eye, screen_pos)
     end
 
     def intersect_plane(ray, point, front)
       # 算出直线和平面的交点
-      t = (point - ray.position).dot(front) / (front.dot(ray.front))
+      t = (point - ray.position).dot(front).to_f / (front.dot(ray.front))
       ray.position + ray.front * t
     end
 
-    def lens_func(x, y)
-      left = (self.up.cross(self.front)).normalize
+    def lens_func1(x, y)
+      left = self.up.cross(self.front).normalize
       retina_center = self.position - self.front.normalize * self.image_distance
       retina_position = retina_center +
-          2 * (x.to_f / self.width - 0.5) * self.retina_width * left +
-          2 * (0.5 - y.to_f / self.height) * self.retina_height * self.up.normalize
-      theta = rand
+          left * (2.0 * (x.to_f / self.width - 0.5) * self.retina_width) +
+          self.up.normalize * (2 * (0.5 - y.to_f / self.height) * self.retina_height)
+      theta = Random.rand
       rand_vector = (left.normalize * Math.cos(theta) + self.up.normalize * Math.sin(theta)) * self.aperture_radius
       aperture_position = self.position + rand_vector
       # direction = aperture_position - retina_position
@@ -159,7 +162,7 @@ module Alex
       object_distance = self.focal_distance*self.focal_distance / self.image_distance
 
       # calculate focal plane
-      point_on_focal_plane = self.position + object_distance * self.front.normalize
+      point_on_focal_plane = self.position + (self.front.normalize) * object_distance
       normal_vector_focal_plane = self.front
 
       # get the intersection of focal plane and this ray
@@ -170,8 +173,8 @@ module Alex
     end
 
     def vector_to_color(vec)
-      raise 'color vector not 3-dimension' unless vec.size == 3
-      x, y, z = (vec*1.8*255).to_a
+      # raise 'color vector not 3-dimension' unless vec.size == 3
+      x, y, z = (vec*(1.8*255)).to_a
       PNG::Color.new([x, 255].min, [y, 255].min, [z, 255].min)
     end
   end

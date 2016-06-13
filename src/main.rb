@@ -5,10 +5,10 @@ include Alex
 
 # require 'ruby-prof'
 # RubyProf.start
-
+Random.srand(1)
 world = World.new 'config/world.yml'
 camera = Camera.new world, 'config/camera.yml'
-camera.render_fork 'image.png'
+camera.render_sync 'image.png'
 
 # result = RubyProf.stop
 #

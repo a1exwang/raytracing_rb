@@ -1,4 +1,6 @@
 require_relative './sphere'
+require_relative '../../lib/fast_4d_matrix/fast_4d_matrix'
+include Fast4DMatrix
 
 module Alex
   module Objects
@@ -17,40 +19,32 @@ module Alex
       def reflect_attenuation(ray, intersection, n, reflect)
         k = 1 #- ray.front.normalize.dot(n.normalize) ** 2
         r, g, b = (self.reflective_attenuation * k).to_a
-        Matrix[
-            [r, 0, 0],
-            [0, g, 0],
-            [0, 0, b]
-        ]
+        Vec3.from_a(r, g, b)
       end
 
       def refraction_attenuation(ray, intersection, n, refract)
         k = 1 #- ray.front.normalize.dot(n.normalize) ** 2
         r, g, b = (self.refractive_attenuation * k).to_a
-        Matrix[
-            [r, 0, 0],
-            [0, g, 0],
-            [0, 0, b]
-        ]
+        Vec3.from_a(r, g, b)
       end
 
       def reflect_refract_matrix(ray, intersection, n, reflect, refract)
         return nil unless reflect
-        i = ray.front.angle_with(-n)
+        i = Math.acos(ray.front.cos(-n))
         if refract
           k = 0.5 + 0.5 * Math.sin(i)
           if k > 1
-            k = 1
+            k = 1.0
           end
           kr = Math.sqrt(1 - k * k)
         else
-          k = 1
-          kr = 0
+          k = 1.0
+          kr = 0.0
         end
 
         [
-            Matrix[[k, 0, 0], [0, k, 0], [0, 0, k]],
-            Matrix[[kr, 0, 0], [0, kr, 0], [0, 0, kr]]
+            Vec3.from_a(k, k, k),
+            Vec3.from_a(kr, kr, kr)
         ]
       end
 
@@ -60,18 +54,23 @@ module Alex
 
       private
       def get_reflection_by_ray_and_n(ray, n, intersection)
-        cos_theta = -ray.front.normalize.dot(n.normalize)
-        front = (2 * cos_theta * ray.front.r * n + ray.front).normalize
-        Ray.new(front, intersection + front * Alex::EPSILON)
+        cos_theta = -ray.front.cos(n)
+        if cos_theta == -1
+          Ray.new(ray.front, intersection + ray.front * Alex::EPSILON)
+        else
+          front = (n * (2 * cos_theta * ray.front.r) + ray.front).normalize
+          Ray.new(front, intersection + front * Alex::EPSILON)
+        end
+
       end
 
       def get_refraction_by_ray_and_n(ray, n, intersection, reflection, refraction_rate)
-        sin_i = Math.sqrt(1 - ray.front.normalize.dot((-n).normalize)**2)
+        sin_i = Math.sqrt(1 - ray.front.cos(n)**2)
 
         sin_theta = sin_i / refraction_rate
         return nil if sin_theta >= 1
         theta = Math.asin(sin_theta)
-        refraction_direction = ((ray.front.dot(n) - Math.cos(theta)) * n / refraction_rate - ray.front / refraction_rate).normalize
+        refraction_direction = (n * (ray.front.dot(n) - Math.cos(theta)) / refraction_rate - ray.front / refraction_rate).normalize
         Ray.new(refraction_direction, intersection + refraction_direction * Alex::EPSILON)
       end
     end

@@ -1,6 +1,6 @@
 require_relative 'world_object'
 require_relative '../libs/algebra'
-require 'matrix'
+require_relative '../../lib/fast_4d_matrix/fast_4d_matrix'
 
 module Alex
   module Objects
@@ -22,7 +22,7 @@ module Alex
         return [nil, nil] if t < 0
 
         # 检查交点的方向
-        direction = (self.front).dot(ray.front) < 0 ? :in : :out
+        direction = self.front.dot(ray.front) < 0 ? :in : :out
         [intersection, direction]
       end
 
@@ -46,22 +46,26 @@ module Alex
       end
 
       def surface?(position)
-        position == self.point || (position - self.point).normalize.dot(self.front.normalize).abs < Alex::EPSILON
+        return true if position == self.point
+        a = position - self.point
+        a.cos(self.front) < Alex::EPSILON
       end
 
       def diffuse(color, position)
-        k = 1
+        k = Vec3.from_a(1.0, 1.0, 1.0)
         if self.texture == 'grids'
-          i = position[0].to_i
-          j = position[1].to_i
-          k = (i + j) % 2 == 0 ? 1 : 0.3
+          i = position.to_a[0].to_i
+          j = position.to_a[1].to_i
+          k = (i + j) % 2 == 0 ? 1.0 : 0.3
+          k = Vec3.from_a(k, k, k)
         end
 
-        Vector[
-          color[0] * self.diffuse_rate[0] * k,
-          color[1] * self.diffuse_rate[1] * k,
-          color[2] * self.diffuse_rate[2] * k
-        ]
+        color * self.diffuse_rate * k
+        # Vector[
+        #   color[0] * self.diffuse_rate[0] * k,
+        #   color[1] * self.diffuse_rate[1] * k,
+        #   color[2] * self.diffuse_rate[2] * k
+        # ]
       end
 
       # def reflect_refract_matrix(ray, intersection, n, reflect, refract)

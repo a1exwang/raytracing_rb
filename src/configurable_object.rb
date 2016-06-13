@@ -1,3 +1,6 @@
+require 'nmatrix'
+require_relative '../lib/fast_4d_matrix/fast_4d_matrix'
+include Fast4DMatrix
 module Alex
 
   class ConfigurableObject
@@ -12,7 +15,7 @@ module Alex
           new_array << hash_value_parse_vector(value)
         elsif value.is_a?(Array) && value.size == 3 && (value.reject { |x| x.is_a? Numeric }).size == 0
           # Array of three numeric elements
-          new_array << Vector[*value]
+          new_array << Vec3.from_a(*value.map { |x| x.to_f })
         elsif value.is_a?(Array)
           new_array << array_parse_vector(value)
         end
@@ -27,7 +30,7 @@ module Alex
           new_hash[key.to_sym] = hash_value_parse_vector(value)
         elsif value.is_a?(Array) && value.size == 3 && (value.reject { |x| x.is_a? Numeric }).size == 0
           # Array of three numeric elements
-          new_hash[key.to_sym] = Vector[*value]
+          new_hash[key.to_sym] = Vec3.from_a(*value.map { |x| x.to_f })
         elsif value.is_a?(Array)
           new_hash[key.to_sym] = array_parse_vector(value)
         else
