@@ -1,6 +1,5 @@
 require_relative 'libs/algebra'
 require_relative '../logger'
-require 'nmatrix'
 require_relative '../lib/fast_4d_matrix/fast_4d_matrix'
 include Fast4DMatrix
 module Alex
@@ -39,19 +38,6 @@ module Alex
       @sum = Vec3.from_a(0.0, 0.0, 0.0)
       until @light_queues[x][y].empty?
         x, y, item = @light_queues[x][y].pop
-        if x == 100 && y == 40 && item[:type] != :ambient
-          tmp = item
-          chain = []
-          puts "#{x}, #{y}"
-          while tmp
-            chain << tmp
-            tmp = tmp[:parent]
-          end
-          chain.reverse.each do |c|
-            puts "\tdepth:#{c[:trace_depth]}, #{c[:str]}"
-          end
-          puts
-        end
         @sum = rt_reduce(@sum, item[:color])
       end
 
@@ -62,7 +48,11 @@ module Alex
     # 最终所有光线都变成了颜色值
     def rt_map(rt_ray)
       ret = [[], []]
-      return ret if rt_ray[:trace_depth] <= 0 || rt_ray[:attenuation].r < 0.0001
+      if rt_ray[:trace_depth] <= 0 #|| rt_ray[:attenuation].r < 0.0001
+        LOG.logt('rt_map', "dead because of rt_depth: position(#{[rt_ray[:x], rt_ray[:y]]})\n" +
+            "from(#{rt_ray[:type]}, #{rt_ray[:object]&.name})\n")
+        return ret
+      end
 
       # # 首先判断是不是直接射到光源
       # # high light
@@ -93,8 +83,8 @@ module Alex
 
         att_reflect, att_refract = object.reflect_refract_vector(rt_ray[:ray], intersection, n, reflection_ray, refraction_ray)
 
-        # reflection
-        if reflection_ray
+        # # reflection
+         if reflection_ray
           LOG.logt('rt_map', "reflection: depth: #{rt_ray[:trace_depth]}, position(#{[rt_ray[:x], rt_ray[:y]]})\n" +
               "from(#{rt_ray[:type]}, #{rt_ray[:object]&.name})\n" +
               "on(#{object.name})\n" +
@@ -115,7 +105,7 @@ module Alex
         end
 
         if refraction_ray
-          LOG.logt('rt_map', "refraction: depth: #{rt_ray[:trace_depth]}, position(#{[rt_ray[:x], rt_ray[:y]]})\n" +
+          LOG.logt('rt_map', "refraction: depth: #{rt_ray[:trace_depth]}, position(#{[rt_ray[:x], rt_ray[:y]]}, #{direction})\n" +
               "from(#{rt_ray[:type]}, #{rt_ray[:object]&.name})\n" +
               "on(#{object.name}, #{intersection})\n" +
               "to direction(#{refraction_ray.front})")

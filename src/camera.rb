@@ -21,7 +21,7 @@ module Alex
     attr_accessor :retina_width, :retina_height
     attr_accessor :trace_depth
 
-    THREAD_COUNT = 4
+    THREAD_COUNT = 24
 
     def initialize(world, config_file)
       @width = 0
@@ -35,7 +35,7 @@ module Alex
     def render_fork(file_name)
       parent_work = lambda do
         canvas = PNG::Canvas.new(@width, @height, PNG::Color::Black)
-        4.times do |i|
+        THREAD_COUNT.times do |i|
           data = JSON.parse(File.read("out/file_#{i}.json"))
           data.each do |x, v|
             v.each do |y, color|

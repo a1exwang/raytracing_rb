@@ -8,8 +8,8 @@ lights:
     type:               Spot
     properties:
       name:             Main
-      position:         [9, 0, 2]
-      radius:           0.04
+      position:         [4, 1, 3]
+      radius:           0.2
       color:            [1, 1, 1]
       high_light_rate:  1
       high_light_angle: 3
@@ -26,38 +26,39 @@ world_objects:
       reflective_attenuation:     [0.2, 0.2, 0.2]
       ambient:                    [0.01, 0.01, 0.01]
       texture_file_path:          ./textures/floor.jpg
-      texture_horizontal_scale:   0.05
-      texture_vertical_scale:     0.05
-#  -
-#    type:                         Plane
-#    properties:
-#      name:                       front wall
-#      point:                      [50, 0, 0]
-#      front:                      [-1, 0, 0]
-#      up:                         [0, 1, 0]
-#      diffuse_rate:               [0, 0.7, 1]
-#      texture:                    none
+      texture_horizontal_scale:   0.01
+      texture_vertical_scale:     0.06
   -
-    type:                         Sphere
+    type:                         Plane
     properties:
-      name:                       big sphere
-      center:                     [8, 1.5, -0.5]
-      north_pole:                 [8, 1.5, 0]
-      greenwich:                  [7.5, 1.5, -0.5]
-      radius:                     0.5
-      refractive_rate:            1.1
-      reflective_attenuation:     [0.67, 0.67, 0.67]
-      refractive_attenuation:     [0, 0, 0]
-      diffuse_rate:               [0.3, 0.3, 0.3]
+      name:                       front wall
+      point:                      [30, 0, 0]
+      front:                      [-1, 0, 0]
+      up:                         [0, 1, 0]
+      diffuse_rate:               [0, 0, 0]
+      reflective_attenuation:     [0.8, 0.8, 0.8]
       ambient:                    [0.01, 0.01, 0.01]
+#  -
+#    type:                         Sphere
+#    properties:
+#      name:                       big sphere
+#      center:                     [8, 1.5, -0.5]
+#      north_pole:                 [8, 1.5, 0]
+#      greenwich:                  [7.5, 1.5, -0.5]
+#      radius:                     0.5
+#      refractive_rate:            1.1
+#      reflective_attenuation:     [0.67, 0.67, 0.67]
+#      refractive_attenuation:     [0, 0, 0]
+#      diffuse_rate:               [0.3, 0.3, 0.3]
+#      ambient:                    [0.01, 0.01, 0.01]
 
   -
     type:                         Sphere
     properties:
       name:                       small sphere
-      center:                     [7, -1.5, -0.2]
-      north_pole:                 [7, -1.5, 0.6]
-      greenwich:                  [6.2, -1.5, -0.2]
+      center:                     [7, -1.7, 0.5]
+#      north_pole:                 [7, -1.5, 0.6]
+#      greenwich:                  [6.2, -1.5, -0.2]
       radius:                     0.8
       refractive_rate:            1.6
       reflective_attenuation:     [0, 0, 0]

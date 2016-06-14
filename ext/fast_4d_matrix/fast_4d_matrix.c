@@ -123,7 +123,9 @@ VALUE Vec3_method_cos(VALUE self, VALUE other) {
   if (r1 == 0 || r2 == 0)
     rb_raise(rb_eRuntimeError, "zero vector detected!");
 
-  return rb_float_new(sqrt(ret*ret / r1 / r2));
+  double v = sqrt(ret*ret / r1 / r2);
+  if (v > 1) v = 1;
+  return rb_float_new(v);
 }
 
 VALUE Vec3_method_cross(VALUE self, VALUE other) {

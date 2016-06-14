@@ -69,11 +69,13 @@ module Alex
       def get_refraction_by_ray_and_n(ray, n, intersection, reflection, refraction_rate, delta)
         sin_i = Math.sqrt(1 - ray.front.cos(n)**2)
 
-        sin_theta = sin_i / refraction_rate
-        return nil if sin_theta >= 1
-        theta = Math.asin(sin_theta)
-        refraction_direction = (n * (ray.front.dot(n) - Math.cos(theta)) / refraction_rate - ray.front / refraction_rate).normalize
-        Ray.new(refraction_direction, intersection - delta)
+        sin_r = sin_i / refraction_rate
+        return nil if sin_r >= 1 # 全反射, 不发生折射
+        r = Math.asin(sin_r)
+        # refraction_direction = (n * (ray.front.dot(n) - Math.cos(theta)) / refraction_rate - ray.front / refraction_rate).normalize
+        refraction_direction =
+            (n.normalize * (-Math.cos(r)) + (reflection + ray.front).normalize * sin_r)
+        Ray.new(refraction_direction, intersection + refraction_direction * Alex::EPSILON)
       end
     end
   end

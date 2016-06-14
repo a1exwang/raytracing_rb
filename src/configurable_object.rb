@@ -1,4 +1,4 @@
-require 'nmatrix'
+
 require_relative '../lib/fast_4d_matrix/fast_4d_matrix'
 include Fast4DMatrix
 module Alex

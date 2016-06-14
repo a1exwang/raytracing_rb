@@ -56,7 +56,7 @@ module Alex
     end
 
     # 两点之间是否有物体
-    def can_go_through?(start, pos, object)
+    def lit_area(start, pos, radius, object)
       ray = Alex::Ray.new(start - pos, pos)
       @world_objects.each do |obj|
         intersection, direction = obj.intersect(ray)
@@ -68,12 +68,12 @@ module Alex
       true
     end
 
-    # 获得对某点的diffusion有贡献的所有光源
+    # 获得对某点的diffusion有贡献的所有光源, 以及光源照到的面积
     def diffused_lights(position, object)
       ret = []
       @lights.each do |light|
-        if can_go_through?(position, light.position, object)
-          ret << [light, light.color]
+        if (area = lit_area(position, light.position, light.radius, object)) > 0
+          ret << [light, light.color * area]
         end
       end
       ret
@@ -90,7 +90,7 @@ module Alex
         ang = Math.acos(cos_theta)
         #puts "angle: #{ang}"
         if ang < (light.high_light_angle / 180.0 * Math::PI) &&
-            can_go_through?(ray.position, light.position, object)
+            lit_area(ray.position, light.position, light.radius, object)
           ret << [light, light.color * light.high_light_rate.to_f]
         end
       end

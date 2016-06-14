@@ -31,22 +31,15 @@ module Alex
         vec = ray.front.normalize * nearest_point_to_intersection
         # 检查最近点是否在光线正方向
 
-        intersection = nil
+        intersection = nearest_point + vec
         direction = nil
 
-        # t > 0 一定有交点
-        if t > 0
-          if inner?(ray.position)
-            intersection = nearest_point + vec
-            direction = :out
-          else
-            intersection = nearest_point + vec
+        # 球内发出的光线一定和球内壁有交点
+        if inner?(ray.position)
+          direction = :out
+        else # inner?(ray.position) == false
+          if t >= 0
             direction = :in
-          end
-        else # t < 0
-          if inner?(ray.position)
-            intersection = nearest_point - ray.front.normalize * nearest_point_to_intersection
-            direction = :out
           else
             return nil
           end
@@ -57,13 +50,12 @@ module Alex
 
       # 根据球和射线的交点获取 法向量, 反射光线, 折射光线
       def intersect_parameters(ray, intersection, direction, delta)
-        n = intersection - self.center
+        n = direction == :in ? (intersection - self.center) : (self.center - intersection)
         reflection = get_reflection_by_ray_and_n(ray, n, intersection, delta)
         refraction = get_refraction_by_ray_and_n(ray, n, intersection,
                                                  reflection.front,
-                                                 direction == :in ? self.refractive_rate : 1 / self.refractive_rate,
-                                                 delta
-        )
+                                                 direction == :in ? self.refractive_rate : 1.0 / self.refractive_rate,
+                                                 delta)
 
         {
             n: n,
