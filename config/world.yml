@@ -7,7 +7,7 @@ lights:
     properties:
       name:             Main
       position:         [8, 1, 3]
-      radius:           0.4
+      radius:           0.8
       color:            [1, 1, 1]
       high_light_rate:  1
       high_light_angle: 3
@@ -48,31 +48,31 @@ world_objects:
 #      diffuse_rate:               [0, 0, 0]
 #      reflective_attenuation:     [0.8, 0.8, 0.8]
 #      ambient:                    [0.01, 0.01, 0.01]
-#  -
-#    type:                         Plane
-#    properties:
-#      name:                       left wall
-#      point:                      [0, 4, 0]
-#      front:                      [0, -1, 0]
-#      up:                         [0, 0, 1]
-#      diffuse_rate:               [0, 0.7, 0]
-#      reflective_attenuation:     [0.2, 0.2, 0.2]
-#      ambient:                    [0.1, 0.1, 0.1]
-#  -
-#    type:                         Plane
-#    properties:
-#      name:                       right wall
-#      point:                      [0, -4, 0]
-#      front:                      [0, 1, 0]
-#      up:                         [0, 0, 1]
-#      diffuse_rate:               [0.7, 0, 0]
-#      reflective_attenuation:     [0.2, 0.2, 0.2]
-#      ambient:                    [0.1, 0.1, 0.1]
+  -
+    type:                         Plane
+    properties:
+      name:                       left wall
+      point:                      [0, 8, 0]
+      front:                      [0, -1, 0]
+      up:                         [0, 0, 1]
+      diffuse_rate:               [0, 0.7, 0]
+      reflective_attenuation:     [0.2, 0.2, 0.2]
+      ambient:                    [0.1, 0.1, 0.1]
+  -
+    type:                         Plane
+    properties:
+      name:                       right wall
+      point:                      [0, -8, 0]
+      front:                      [0, 1, 0]
+      up:                         [0, 0, 1]
+      diffuse_rate:               [0.7, 0, 0]
+      reflective_attenuation:     [0.2, 0.2, 0.2]
+      ambient:                    [0.1, 0.1, 0.1]
   -
     type:                         Sphere
     properties:
       name:                       big sphere
-      center:                     [2, 0.5, -0.8]
+      center:                     [2, 1.1, -0.7]
       radius:                     0.3
       refractive_rate:            1.1
       reflective_attenuation:     [0.6, 0.6, 0.6]
@@ -80,17 +80,17 @@ world_objects:
       diffuse_rate:               [0.3, 0.3, 0.3]
       ambient:                    [0.01, 0.01, 0.01]
 
-  -
-    type:                         Sphere
-    properties:
-      name:                       big sphere1
-      center:                     [20, -6, 1]
-      radius:                     2
-      refractive_rate:            1.1
-      reflective_attenuation:     [0.6, 0.6, 0.6]
-      refractive_attenuation:     [0, 0, 0]
-      diffuse_rate:               [0.3, 0.3, 0.3]
-      ambient:                    [0.01, 0.01, 0.01]
+#  -
+#    type:                         Sphere
+#    properties:
+#      name:                       big sphere1
+#      center:                     [26, -3, 1]
+#      radius:                     2
+#      refractive_rate:            1.1
+#      reflective_attenuation:     [0.6, 0.6, 0.6]
+#      refractive_attenuation:     [0, 0, 0]
+#      diffuse_rate:               [0.3, 0.3, 0.3]
+#      ambient:                    [0.01, 0.01, 0.01]
 
 #  -
 #    type:                         Box
@@ -108,15 +108,15 @@ world_objects:
 #      front:                      [-1, 0, 0]
 #      up:                         [0, 0, 1]
 #
-#  -
-#    type:                         Sphere
-#    properties:
-#      name:                       small sphere
-#      center:                     [20, -1.3, 1.5]
-#      radius:                     2
-#      refractive_rate:            1.6
-#      reflective_attenuation:     [0.1, 0.1, 0.1]
-#      refractive_attenuation:     [0.7, 0.7, 0.7]
-#      diffuse_rate:               [0.1, 0.1, 0.1]
-#      ambient:                    [0.01, 0.01, 0.01]
-#
+  -
+    type:                         Sphere
+    properties:
+      name:                       small sphere
+      center:                     [20, -2, 1.5]
+      radius:                     2
+      refractive_rate:            1.6
+      reflective_attenuation:     [0.1, 0.1, 0.1]
+      refractive_attenuation:     [0.7, 0.7, 0.7]
+      diffuse_rate:               [0.1, 0.1, 0.1]
+      ambient:                    [0.01, 0.01, 0.01]
+

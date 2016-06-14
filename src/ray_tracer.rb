@@ -48,7 +48,7 @@ module Alex
     # 最终所有光线都变成了颜色值
     def rt_map(rt_ray)
       ret = [[], []]
-      if rt_ray[:trace_depth] <= 0 #|| rt_ray[:attenuation].r < 0.0001
+      if rt_ray[:trace_depth] <= 0 || rt_ray[:attenuation].r < 0.0001
         LOG.logt('rt_map', "dead because of rt_depth: position(#{[rt_ray[:x], rt_ray[:y]]})\n" +
             "from(#{rt_ray[:type]}, #{rt_ray[:object]&.name})\n")
         return ret

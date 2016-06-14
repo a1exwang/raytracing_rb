@@ -8,11 +8,11 @@ aperture_radius:  0.02  # for human-beings, 3mm ~ 4mm
 image_distance:   0.01714573877962683 # for human-beings, ~3cm
 focal_distance:   0.017   # for human-beings, 17mm
 
-width:            192
-height:           108
+width:            400
+height:           225
 
-pre_sample_times: 3
-max_sample_times: 10
+pre_sample_times: 2
+max_sample_times: 4
 variant_threshold: 0.003
 
-trace_depth:      8
+trace_depth:      4
