@@ -2,6 +2,7 @@ require_relative 'configurable_object'
 
 require_relative 'objects/sphere'
 require_relative 'objects/plane'
+require_relative 'objects/box'
 
 require_relative 'lights/spot_light'
 
@@ -39,8 +40,9 @@ module Alex
       nearest_intersection = nil
       nearest_direction = nil
       nearest_delta = nil
+      nearest_data = nil
       @world_objects.each do |obj|
-        intersection, direction, delta = obj.intersect(ray)
+        intersection, direction, delta, data = obj.intersect(ray)
         if intersection
           new_dis = ray.distance(intersection)
           if new_dis < nearest_dis
@@ -49,10 +51,11 @@ module Alex
             nearest_intersection = intersection
             nearest_direction = direction
             nearest_delta = delta
+            nearest_data = data
           end
         end
       end
-      [nearest_obj, nearest_intersection, nearest_direction, nearest_delta]
+      [nearest_obj, nearest_intersection, nearest_direction, nearest_delta, nearest_data]
     end
 
     # 获得光源能照到的面积, 只考虑一个遮挡物的情况

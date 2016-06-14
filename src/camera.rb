@@ -20,6 +20,7 @@ module Alex
     attr_accessor :image_distance, :focal_distance, :aperture_radius
     attr_accessor :retina_width, :retina_height
     attr_accessor :trace_depth
+    attr_accessor :max_sample_times, :pre_sample_times, :variant_threshold
 
     THREAD_COUNT = 24
 
@@ -73,26 +74,51 @@ module Alex
       canvas = PNG::Canvas.new(@width, @height, PNG::Color::Black)
 
       i = 0
+      ten_count = 0
       @width.times do |x|
         @height.times do |y|
-          ray = lens_func(x, y)
-          color_vec = Vec3.from_a(0.0, 0.0, 0.0)
-          sample_times = 1
-          sample_times.times do
-            color_vec += @ray_tracer.trace_sync(x, y, ray)
+          pre_samples = []
+          average = Vec3.from_a(0.0, 0.0, 0.0)
+          Array.new(self.pre_sample_times) do |j|
+            ray = lens_func(x, y, j)
+            v =  @ray_tracer.trace_sync(x, y, ray)
+            pre_samples << v
+            average += v
           end
-          canvas.point(x, @height - 1 - y, vector_to_color(color_vec / sample_times.to_f))
+
+          variance = 0
+          average /= self.pre_sample_times.to_f
+          self.pre_sample_times.times do |j|
+            variance += (pre_samples[j] - average).to_a.max ** 2
+          end
+          variance /= self.pre_sample_times
+
+          if variance >= self.variant_threshold
+            color_vec = Vec3.from_a(0.0, 0.0, 0.0)
+            (self.pre_sample_times...self.max_sample_times).each do |j|
+              ray = lens_func(x, y, j)
+              color_vec += @ray_tracer.trace_sync(x, y, ray)
+            end
+            ten_count += 1
+            average = (average * self.pre_sample_times.to_f + color_vec) / self.max_sample_times.to_f
+          else
+            average
+          end
+
+          canvas.point(x, @height - 1 - y, vector_to_color(average))
           i += 1
         end
         puts "Progress: #{(i.to_f / @width / @height * 100).round(2)}%" if i % 100 == 0
       end
+
+      puts "ten_count: #{ten_count}"
 
       png = PNG.new canvas
       png.save file_name
     end
 
     private
-    def lens_func(x, y)
+    def lens_func1(x, y, i)
       eye = self.position - self.front * self.image_distance
       left = self.up.cross(self.front).normalize
       screen_pos =
@@ -108,7 +134,7 @@ module Alex
       ray.position + ray.front * t
     end
 
-    def lens_func1(x, y)
+    def lens_func(x, y, i)
       left = self.up.cross(self.front).normalize
       retina_center = self.position - self.front.normalize * self.image_distance
       retina_position = retina_center +
@@ -119,7 +145,7 @@ module Alex
       aperture_position = self.position + rand_vector
       # direction = aperture_position - retina_position
 
-      object_distance = self.focal_distance*self.focal_distance / self.image_distance
+      object_distance = self.focal_distance * self.image_distance / (self.image_distance - self.focal_distance)
 
       # calculate focal plane
       point_on_focal_plane = self.position + (self.front.normalize) * object_distance

@@ -5,8 +5,10 @@
 - ~~get_reflection_by_ray_and_n, intersection - front * EPISILON反而减少了黑点~~
 
 # TODOs
-- texture
-- 软阴影
+- ~~phong~~
+- ~~texture~~
+- ~~软阴影~~
 - 抗锯齿
+- box
 - 速度优化
 - mesh

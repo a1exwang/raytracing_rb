@@ -39,8 +39,14 @@ module Alex
       def local_lighting(light_color, position, light_position, normal_vector, ray)
         n = normal_vector.normalize
         l = (light_position - position).normalize
+        l_dot_n = l.dot(n)
+        if l_dot_n > 1
+          l_dot_n = 1.0
+        elsif l_dot_n < 0
+          l_dot_n = 0.0
+        end
         light_color *
-            (self.diffuse_rate * [l.dot(n), 0.0].max + self.ambient)
+            (self.diffuse_rate * l_dot_n + self.ambient)
       end
 
       private

@@ -23,9 +23,11 @@ module Alex
           0
         else
           s1 = Math::PI * r1 * r1
-          if d > self.radius - r1
-            theta1 = Math.acos((r1 * r1 + d * d - self.radius * self.radius) / (2 * r1 * d))
-            theta2 = Math.acos((self.radius * self.radius + d * d - r1 * r1) / (2 * self.radius * d))
+          if d > (self.radius - r1).abs
+            cos_theta1 = [(r1 * r1 + d * d - self.radius * self.radius) / (2 * r1 * d), 1.0].min
+            cos_theta2 = [(self.radius * self.radius + d * d - r1 * r1) / (2 * self.radius * d), 1.0].min
+            theta1 = Math.acos(cos_theta1)
+            theta2 = Math.acos(cos_theta2)
             delta_s = ((theta1 - Math.sin(theta1)) * r1 * r1 + (theta2 - Math.sin(theta2)) * self.radius * self.radius) / 2
             delta_s / s1
           else
@@ -70,7 +72,7 @@ module Alex
       end
 
       # 根据球和射线的交点获取法向量, 反射光线, 折射光线
-      def intersect_parameters(ray, intersection, direction, delta)
+      def intersect_parameters(ray, intersection, direction, delta, data = nil)
         n = direction == :in ? (intersection - self.center) : (self.center - intersection)
         reflection = get_reflection_by_ray_and_n(ray, n, intersection, delta)
         refraction = get_refraction_by_ray_and_n(ray, n, intersection,

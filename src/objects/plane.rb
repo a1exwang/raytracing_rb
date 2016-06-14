@@ -11,11 +11,23 @@ module Alex
       attr_accessor :reflective_attenuation, :refractive_attenuation, :refractive_rate
       attr_accessor :texture_file_path, :texture_horizontal_scale, :texture_vertical_scale
       attr_reader :texture
-      def initialize(h)
+      attr_reader :left
+
+      def self.create_from_scratch
+        self.new
+      end
+
+      def reinit
+        @left = self.front.cross(self.up).normalize
+      end
+
+      def initialize(h = nil)
+        return unless h
         super(h)
         if self.texture_file_path
           init_texture(self.texture_file_path)
         end
+        reinit
       end
 
       def init_texture(file_path)
@@ -40,7 +52,7 @@ module Alex
       end
 
       # 根据球和射线的交点获取 法向量, 反射光线, 折射光线
-      def intersect_parameters(ray, intersection, direction, delta)
+      def intersect_parameters(ray, intersection, direction, delta, data = nil)
         n = self.front
         if n.dot(ray.front) > 0
           n = -n
@@ -64,11 +76,16 @@ module Alex
         a.cos(self.front) < Alex::EPSILON
       end
 
+      def get_uv(position)
+        u = position.dot(self.left)
+        v = position.dot(self.up.normalize)
+        [u, v]
+      end
+
       def local_lighting(color, position, light_position, normal_vector, ray)
         if self.texture
-          left = self.front.cross(self.up)
-          u = position.dot(left.normalize)
-          v = position.dot(self.up.normalize)
+
+          u, v = get_uv(position)
           super(color * self.texture.color(u, v), position, light_position, normal_vector, ray)
         else
           super

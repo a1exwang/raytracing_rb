@@ -44,7 +44,7 @@ module Alex
       @sum
     end
 
-    # 对一条光线, 求反射, 折射光线, 散射, 高光, 环境光颜色
+    # 对一条光线, 求反射, 折射光线和局部光照的颜色
     # 最终所有光线都变成了颜色值
     def rt_map(rt_ray)
       ret = [[], []]
@@ -54,8 +54,8 @@ module Alex
         return ret
       end
 
-      # # 首先判断是不是直接射到光源
-      # # high light
+      # 首先判断是不是直接射到光源
+      # high light
       # lights = @world.high_lights(rt_ray[:ray], rt_ray[:object])
       # lights.each do |light, color|
       #   LOG.logt('rt_map', "high_light: from(#{light.name}), to(#{rt_ray[:object]&.name})", 4)
@@ -74,9 +74,9 @@ module Alex
       # return ret if ret.last.size > 0
 
       # intersection
-      object, intersection, direction, delta = @world.intersect(rt_ray[:ray])
+      object, intersection, direction, delta, data = @world.intersect(rt_ray[:ray])
       if object
-        p = object.intersect_parameters(rt_ray[:ray], intersection, direction, delta)
+        p = object.intersect_parameters(rt_ray[:ray], intersection, direction, delta, data)
         n = p[:n]
         reflection_ray = p[:reflection]
         refraction_ray = p[:refraction]
