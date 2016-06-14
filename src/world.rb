@@ -57,15 +57,6 @@ module Alex
 
     # 获得光源能照到的面积, 只考虑一个遮挡物的情况
     def lit_area(target, light_pos, radius, object)
-      # ray = Alex::Ray.new(target - light_pos, light_pos)
-      # @world_objects.each do |obj|
-      #   intersection, direction = obj.intersect(ray)
-      #   # make sure the intersection is between start and pos
-      #   if intersection && (target - intersection).dot(light_pos - intersection) < 0
-      #     return false
-      #   end
-      # end
-      # true
       total_area = 1
       @world_objects.each do |obj|
         if (area = obj.cover_area(light_pos, radius, target)) > 0
@@ -76,11 +67,10 @@ module Alex
     end
 
     # 获得对某点的diffusion有贡献的所有光源, 以及光源照到的面积
-    def diffused_lights(position, object)
+    def local_lights(position, object)
       ret = []
       @lights.each do |light|
         if (area = lit_area(position, light.position, light.radius, object).to_f) > 0
-          raise "#{area}" if area > 1
           ret << [light, light.color * area]
         end
       end

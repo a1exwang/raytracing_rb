@@ -1,14 +1,12 @@
-
 max_distance:   100
 ambient_light:  [0.01, 0.01, 0.01]
-
 
 lights:
   -
     type:               Spot
     properties:
       name:             Main
-      position:         [0, 1, 5]
+      position:         [5, 1, 5]
       radius:           0.8
       color:            [1, 1, 1]
       high_light_rate:  1
@@ -22,7 +20,9 @@ world_objects:
       point:                      [0, 0, -1]
       front:                      [0, 0, 1]
       up:                         [1, 0, 0]
-      diffuse_rate:               [0.6, 0.6, 0.6]
+      specular_power:             3
+      specular_rate:              [0.2, 0.2, 0.2]
+      diffuse_rate:               [0.5, 0.5, 0.5]
       reflective_attenuation:     [0.2, 0.2, 0.2]
       ambient:                    [0.01, 0.01, 0.01]
       texture_file_path:          ./textures/floor.jpg

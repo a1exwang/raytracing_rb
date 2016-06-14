@@ -11,10 +11,6 @@ module Alex
       attr_accessor :reflective_attenuation, :refractive_attenuation, :refractive_rate
       attr_accessor :texture_file
 
-      def vector_to_texture(vector)
-        v1 = vector - north_pole
-      end
-
       def cover_area(light_position, light_radius, target_position)
         # 解出包含球心的平面上, 并且在锥面中线上的点x1
         t = (self.center - target_position).dot(light_position - target_position) / (light_position - target_position).r2
@@ -56,8 +52,6 @@ module Alex
         nearest_dis = (nearest_point - self.center).r
         nearest_point_to_intersection = Math.sqrt(self.radius ** 2 - nearest_dis ** 2)
         vec = ray.front.normalize * nearest_point_to_intersection
-        # 检查最近点是否在光线正方向
-
         intersection = nearest_point + vec
         direction = nil
 
@@ -75,7 +69,7 @@ module Alex
         [intersection, direction, (intersection - self.center) * Alex::EPSILON * (direction == :in ? 1.0 : -1.0)]
       end
 
-      # 根据球和射线的交点获取 法向量, 反射光线, 折射光线
+      # 根据球和射线的交点获取法向量, 反射光线, 折射光线
       def intersect_parameters(ray, intersection, direction, delta)
         n = direction == :in ? (intersection - self.center) : (self.center - intersection)
         reflection = get_reflection_by_ray_and_n(ray, n, intersection, delta)

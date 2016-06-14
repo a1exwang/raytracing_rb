@@ -30,28 +30,17 @@ module Alex
 
       def reflect_refract_vector(ray, intersection, n, reflect, refract)
         return nil unless reflect
-        # i = Math.acos(ray.front.cos(-n))
-        # if refract
-        #   k = 0.4 + 0.4 * Math.sin(i)
-        #   if k > 0.9
-        #     k = 0.9
-        #   end
-        #   kr = Math.sqrt(0.81 - k * k)
-        # else
-        #   k = 0.9
-        #   kr = 0.0
-        # end
-
-        # [
-        #     Vec3.from_a(k, k, k),
-        #     Vec3.from_a(kr, kr, kr)
-        # ]
         # TODO 根据冯模型计算反射和折射强度
+
+        # ray视点到交点的向量
         [self.reflective_attenuation, self.refractive_attenuation]
       end
 
-      def diffuse(light_color, position)
-        light_color * self.diffuse_rate
+      def local_lighting(light_color, position, light_position, normal_vector, ray)
+        n = normal_vector.normalize
+        l = (light_position - position).normalize
+        light_color *
+            (self.diffuse_rate * [l.dot(n), 0.0].max + self.ambient)
       end
 
       private

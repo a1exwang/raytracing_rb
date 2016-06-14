@@ -123,35 +123,21 @@ module Alex
           ret.first << refraction
         end
 
-        # diffusion
-        lights = @world.diffused_lights(intersection + delta, object)
+        # local lighting model.
+        lights = @world.local_lights(intersection + delta, object)
         lights.each do |light, color|
-          LOG.logt('rt_map', "diffusion: depth: #{rt_ray[:trace_depth]}, position(#{[rt_ray[:x], rt_ray[:y]]})\n" +
+          LOG.logt('rt_map', "local: depth: #{rt_ray[:trace_depth]}, position(#{[rt_ray[:x], rt_ray[:y]]})\n" +
               "from(#{rt_ray[:type]}, #{rt_ray[:object]&.name})\n" +
               "light(#{light.name}), object(#{object.name})")
           ret.last << {
               type: :diffusion,
-              color: rt_ray[:attenuation] * object.diffuse(color, intersection) / lights.size.to_f,
+              color: rt_ray[:attenuation] * object.local_lighting(color, intersection, light.position, n, rt_ray[:ray]) / lights.size.to_f,
               x: rt_ray[:x],
               y: rt_ray[:y],
               parent: rt_ray,
-              str: "diffuse on object(#{object.name}) with light(#{light.name})",
               trace_depth: rt_ray[:trace_depth] - 1
           }
         end
-
-        # ambient light
-        # ambient = {
-        #     type: :ambient,
-        #     color: rt_ray[:attenuation] * object.ambient,
-        #     x: rt_ray[:x],
-        #     y: rt_ray[:y],
-        #     parent: rt_ray,
-        #     str: "ambient on #{object.name}",
-        #     trace_depth: rt_ray[:trace_depth] - 1
-        # }
-        # LOG.logt('rt_map', "ambient: object(#{object.name})", 4)
-        # ret.last << ambient
       else
         LOG.logt('rt_map', "light_dead: depth: #{rt_ray[:trace_depth]}, position(#{[rt_ray[:x], rt_ray[:y]]})\n" +
             "direction = #{rt_ray[:ray].front.to_a.map { |x| x.round(3) }}")
@@ -171,12 +157,6 @@ module Alex
     private
     # 混合两个颜色值
     def mix_color(c1, c2)
-      # x = 1 - 1 / (Math::E ** (Math.log(1/(1-c1[0])) + Math.log(1/(1-c2[0]))) / Math.log(Math::E))
-      # y = 1 - 1 / (Math::E ** (Math.log(1/(1-c1[1])) + Math.log(1/(1-c2[1]))) / Math.log(Math::E))
-      # z = 1 - 1 / (Math::E ** (Math.log(1/(1-c1[2])) + Math.log(1/(1-c2[2]))) / Math.log(Math::E))
-      # Vector[x, y, z]
-      # v = c1 + c2
-      # Vector[v[0] > 1 ? 1 : v[0], v[1] > 1 ? 1 : v[1], v[2] > 1 ? 1 : v[2]]
       c1 + c2
     end
 

@@ -64,14 +64,14 @@ module Alex
         a.cos(self.front) < Alex::EPSILON
       end
 
-      def diffuse(color, position)
+      def local_lighting(color, position, light_position, normal_vector, ray)
         if self.texture
           left = self.front.cross(self.up)
           u = position.dot(left.normalize)
           v = position.dot(self.up.normalize)
-          color * self.diffuse_rate * self.texture.color(u, v)
+          super(color * self.texture.color(u, v), position, light_position, normal_vector, ray)
         else
-          color * self.diffuse_rate
+          super
         end
       end
 
