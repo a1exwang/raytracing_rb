@@ -83,8 +83,8 @@ module Alex
 
         att_reflect, att_refract = object.reflect_refract_vector(rt_ray[:ray], intersection, n, reflection_ray, refraction_ray)
 
-        # # reflection
-         if reflection_ray
+        # reflection
+        if reflection_ray
           LOG.logt('rt_map', "reflection: depth: #{rt_ray[:trace_depth]}, position(#{[rt_ray[:x], rt_ray[:y]]})\n" +
               "from(#{rt_ray[:type]}, #{rt_ray[:object]&.name})\n" +
               "on(#{object.name})\n" +
@@ -141,17 +141,17 @@ module Alex
         end
 
         # ambient light
-        ambient = {
-            type: :ambient,
-            color: rt_ray[:attenuation] * object.ambient,
-            x: rt_ray[:x],
-            y: rt_ray[:y],
-            parent: rt_ray,
-            str: "ambient on #{object.name}",
-            trace_depth: rt_ray[:trace_depth] - 1
-        }
-        LOG.logt('rt_map', "ambient: object(#{object.name})", 4)
-        ret.last << ambient
+        # ambient = {
+        #     type: :ambient,
+        #     color: rt_ray[:attenuation] * object.ambient,
+        #     x: rt_ray[:x],
+        #     y: rt_ray[:y],
+        #     parent: rt_ray,
+        #     str: "ambient on #{object.name}",
+        #     trace_depth: rt_ray[:trace_depth] - 1
+        # }
+        # LOG.logt('rt_map', "ambient: object(#{object.name})", 4)
+        # ret.last << ambient
       else
         LOG.logt('rt_map', "light_dead: depth: #{rt_ray[:trace_depth]}, position(#{[rt_ray[:x], rt_ray[:y]]})\n" +
             "direction = #{rt_ray[:ray].front.to_a.map { |x| x.round(3) }}")

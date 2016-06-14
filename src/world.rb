@@ -66,20 +66,21 @@ module Alex
       #   end
       # end
       # true
-      ret = 0
+      total_area = 1
       @world_objects.each do |obj|
-        if (area = obj.lit_area(light_pos, radius, target)) > 0
-          ret += area
+        if (area = obj.cover_area(light_pos, radius, target)) > 0
+          total_area -= area
         end
       end
-      ret
+      total_area
     end
 
     # 获得对某点的diffusion有贡献的所有光源, 以及光源照到的面积
     def diffused_lights(position, object)
       ret = []
       @lights.each do |light|
-        if (area = lit_area(position, light.position, light.radius, object)) > 0
+        if (area = lit_area(position, light.position, light.radius, object).to_f) > 0
+          raise "#{area}" if area > 1
           ret << [light, light.color * area]
         end
       end

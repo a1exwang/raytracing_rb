@@ -22,7 +22,7 @@ module Alex
         @texture = Alex::Texture.new(file_path, self.texture_horizontal_scale, self.texture_vertical_scale)
       end
 
-      def lit_area(light_position, light_radius, target_position)
+      def cover_area(light_position, light_radius, target_position)
         0
       end
 

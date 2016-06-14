@@ -63,7 +63,6 @@ module Alex
           front = (n * (2 * cos_theta * ray.front.r) + ray.front).normalize
           Ray.new(front, intersection + delta)
         end
-
       end
 
       def get_refraction_by_ray_and_n(ray, n, intersection, reflection, refraction_rate, delta)
