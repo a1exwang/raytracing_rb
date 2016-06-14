@@ -140,18 +140,18 @@ module Alex
           }
         end
 
-        # # ambient light
-        # ambient = {
-        #     type: :ambient,
-        #     color: rt_ray[:attenuation] * object.ambient,
-        #     x: rt_ray[:x],
-        #     y: rt_ray[:y],
-        #     parent: rt_ray,
-        #     str: "ambient on #{object.name}",
-        #     trace_depth: rt_ray[:trace_depth] - 1
-        # }
-        # LOG.logt('rt_map', "ambient: object(#{object.name})", 4)
-        # ret.last << ambient
+        # ambient light
+        ambient = {
+            type: :ambient,
+            color: rt_ray[:attenuation] * object.ambient,
+            x: rt_ray[:x],
+            y: rt_ray[:y],
+            parent: rt_ray,
+            str: "ambient on #{object.name}",
+            trace_depth: rt_ray[:trace_depth] - 1
+        }
+        LOG.logt('rt_map', "ambient: object(#{object.name})", 4)
+        ret.last << ambient
       else
         LOG.logt('rt_map', "light_dead: depth: #{rt_ray[:trace_depth]}, position(#{[rt_ray[:x], rt_ray[:y]]})\n" +
             "direction = #{rt_ray[:ray].front.to_a.map { |x| x.round(3) }}")

@@ -55,17 +55,24 @@ module Alex
       [nearest_obj, nearest_intersection, nearest_direction, nearest_delta]
     end
 
-    # 两点之间是否有物体
-    def lit_area(start, pos, radius, object)
-      ray = Alex::Ray.new(start - pos, pos)
+    # 获得光源能照到的面积, 只考虑一个遮挡物的情况
+    def lit_area(target, light_pos, radius, object)
+      # ray = Alex::Ray.new(target - light_pos, light_pos)
+      # @world_objects.each do |obj|
+      #   intersection, direction = obj.intersect(ray)
+      #   # make sure the intersection is between start and pos
+      #   if intersection && (target - intersection).dot(light_pos - intersection) < 0
+      #     return false
+      #   end
+      # end
+      # true
+      ret = 0
       @world_objects.each do |obj|
-        intersection, direction = obj.intersect(ray)
-        # make sure the intersection is between start and pos
-        if intersection && (start - intersection).dot(pos - intersection) < 0
-          return false
+        if (area = obj.lit_area(light_pos, radius, target)) > 0
+          ret += area
         end
       end
-      true
+      ret
     end
 
     # 获得对某点的diffusion有贡献的所有光源, 以及光源照到的面积
