@@ -23,33 +23,39 @@ module Alex
         up_plane = Plane.create_from_scratch
         up_plane.front = self.up
         up_plane.up = self.front
-        up_plane.point = self.point + self.up * self.width_up
+        up_plane.point = self.point + self.up * self.width_up * 0.5
+        up_plane.u_unit, up_plane.v_unit = [self.width_front, self.width_left]
 
         bottom_plane = Plane.create_from_scratch
         bottom_plane.front = -self.up
         bottom_plane.up = self.front
-        bottom_plane.point = self.point - self.up * self.width_up
+        bottom_plane.point = self.point - self.up * self.width_up * 0.5
+        bottom_plane.u_unit, bottom_plane.v_unit = [self.width_front, self.width_left]
 
         # front
         front_plane = Plane.create_from_scratch
         front_plane.front = self.front
         front_plane.up = self.up
-        front_plane.point = self.point + self.front * self.width_front
+        front_plane.point = self.point + self.front * self.width_front * 0.5
+        front_plane.u_unit, front_plane.v_unit = [self.width_left, self.width_up]
         back_plane = Plane.create_from_scratch
         back_plane.front = -self.front
         back_plane.up = self.up
-        back_plane.point = self.point - self.front * self.width_front
+        back_plane.point = self.point - self.front * self.width_front * 0.5
+        back_plane.u_unit, back_plane.v_unit = [self.width_left, self.width_up]
 
         # left
         left = self.front.cross(self.up).normalize
         left_plane = Plane.create_from_scratch
         left_plane.front = left
         left_plane.up = self.up
-        left_plane.point = self.point + left * self.width_left
+        left_plane.point = self.point + left * self.width_left * 0.5
+        left_plane.u_unit, left_plane.v_unit = [self.width_front, self.width_up]
         right_plane = Plane.create_from_scratch
         right_plane.front = -left
         right_plane.up = self.up
-        right_plane.point = self.point - left * self.width_left
+        right_plane.point = self.point - left * self.width_left * 0.5
+        right_plane.u_unit, right_plane.v_unit = [self.width_front, self.width_up]
 
         @planes << up_plane
         @planes << bottom_plane
@@ -73,8 +79,11 @@ module Alex
         @planes.each_with_index do |plane, index|
           intersection, direction, delta = plane.intersect(ray)
           if intersection
-            data = { index: index }
-            return intersection, direction, delta, data
+            u, v = plane.get_uv(intersection)
+            if -0.5 <= u && u <= 0.5 && -0.5 <= v && v <= 0.5
+              data = { index: index }
+              return intersection, direction, delta, data
+            end
           end
         end
         nil

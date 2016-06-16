@@ -50,7 +50,7 @@ module Alex
       ret = [[], []]
       if rt_ray[:trace_depth] <= 0 || rt_ray[:attenuation].r < 0.0001
         LOG.logt('rt_map', "dead because of rt_depth: position(#{[rt_ray[:x], rt_ray[:y]]})\n" +
-            "from(#{rt_ray[:type]}, #{rt_ray[:object]&.name})\n")
+            "from(#{rt_ray[:type]}, #{rt_ray[:object]&.name}, #{rt_ray[:ray].front})\n")
         return ret
       end
 
@@ -86,7 +86,7 @@ module Alex
         # reflection
         if reflection_ray
           LOG.logt('rt_map', "reflection: depth: #{rt_ray[:trace_depth]}, position(#{[rt_ray[:x], rt_ray[:y]]})\n" +
-              "from(#{rt_ray[:type]}, #{rt_ray[:object]&.name})\n" +
+              "from(#{rt_ray[:type]}, #{rt_ray[:object]&.name}, #{rt_ray[:ray].front})\n" +
               "on(#{object.name})\n" +
               "to direction(#{reflection_ray.front.to_s})")
           reflection = {
@@ -127,7 +127,7 @@ module Alex
         lights = @world.local_lights(intersection + delta, object)
         lights.each do |light, color|
           LOG.logt('rt_map', "local: depth: #{rt_ray[:trace_depth]}, position(#{[rt_ray[:x], rt_ray[:y]]})\n" +
-              "from(#{rt_ray[:type]}, #{rt_ray[:object]&.name})\n" +
+              "from(#{rt_ray[:type]}, #{rt_ray[:object]&.name}, #{rt_ray[:ray].front})\n" +
               "light(#{light.name}), object(#{object.name})")
           ret.last << {
               type: :diffusion,
