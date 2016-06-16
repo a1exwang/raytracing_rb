@@ -65,7 +65,7 @@ module Alex
         # refraction_direction = (n * (ray.front.dot(n) - Math.cos(r)) / refraction_rate - ray.front / refraction_rate).normalize
         refraction_direction =
             (n.normalize * (-Math.cos(r)) + (reflection + ray.front).normalize * sin_r)
-        Ray.new(refraction_direction, intersection + refraction_direction * Alex::EPSILON)
+        Ray.new(refraction_direction, intersection - n.normalize * Alex::EPSILON)
       end
     end
   end

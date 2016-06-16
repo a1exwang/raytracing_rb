@@ -10,6 +10,10 @@ module Alex
     def distance(pos)
       (@position - pos).r
     end
+
+    def to_s
+      "->#{self.front}, pos: #{self.position}"
+    end
   end
 
 end

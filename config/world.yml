@@ -30,26 +30,37 @@ world_objects:
       texture_file_path:          ./textures/floor.jpg
       texture_horizontal_scale:   0.01
       texture_vertical_scale:     0.06
+  -
+    type:                         Plane
+    properties:
+      name:                       front wall
+      point:                      [30, 0, 0]
+      front:                      [-1, 0, 0]
+      up:                         [0, 0, -1]
+      diffuse_rate:               [0.4, 0.4, 0.4]
+      reflective_attenuation:     [0.3, 0.3, 0.3]
+      ambient:                    [0.1, 0.1, 0.1]
+      u_unit:                     1
+      v_unit:                     1
+      specular_power:             3
+      specular_rate:              [0.2, 0.2, 0.2]
+      diffuse_rate:               [0.3, 0.3, 0.3]
+      reflective_attenuation:     [0.5, 0.5, 0.5]
+      ambient:                    [0.1, 0.1, 0.1]
+      texture_file_path:          ./textures/RubyOnRails.png
+      texture_horizontal_scale:   0.03
+      texture_vertical_scale:     0.03
+
 #  -
 #    type:                         Plane
 #    properties:
-#      name:                       front wall
-#      point:                      [30, 0, 0]
-#      front:                      [-1, 0, 0]
+#      name:                       back wall
+#      point:                      [-5, 0, 0]
+#      front:                      [1, 0, 0]
 #      up:                         [0, 1, 0]
-#      diffuse_rate:               [0.4, 0.4, 0.4]
-#      reflective_attenuation:     [0.3, 0.3, 0.3]
-#      ambient:                    [0.1, 0.1, 0.1]
-##  -
-##    type:                         Plane
-##    properties:
-##      name:                       back wall
-##      point:                      [-5, 0, 0]
-##      front:                      [1, 0, 0]
-##      up:                         [0, 1, 0]
-##      diffuse_rate:               [0, 0, 0]
-##      reflective_attenuation:     [0.8, 0.8, 0.8]
-##      ambient:                    [0.01, 0.01, 0.01]
+#      diffuse_rate:               [0, 0, 0]
+#      reflective_attenuation:     [0.8, 0.8, 0.8]
+#      ambient:                    [0.01, 0.01, 0.01]
   -
     type:                         Plane
     properties:
@@ -81,45 +92,30 @@ world_objects:
       refractive_attenuation:     [0, 0, 0]
       diffuse_rate:               [0.3, 0.3, 0.3]
       ambient:                    [0.01, 0.01, 0.01]
-
-#  -
-#    type:                         Sphere
-#    properties:
-#      name:                       big sphere1
-#      center:                     [26, -3, 1]
-#      radius:                     2
-#      refractive_rate:            1.1
-#      reflective_attenuation:     [0.6, 0.6, 0.6]
-#      refractive_attenuation:     [0, 0, 0]
-#      diffuse_rate:               [0.3, 0.3, 0.3]
-#      ambient:                    [0.01, 0.01, 0.01]
-#
+  -
+    type:                         Sphere
+    properties:
+      name:                       small sphere
+      center:                     [7, -2, 0.1]
+      radius:                     1.1
+      refractive_rate:            1.6
+      reflective_attenuation:     [0.1, 0.1, 0.1]
+      refractive_attenuation:     [0.7, 0.7, 0.7]
+      diffuse_rate:               [0.1, 0.1, 0.1]
+      ambient:                    [0.01, 0.01, 0.01]
   -
     type:                         Box
     properties:
       name:                       big box
       refractive_rate:            1.1
       reflective_attenuation:     [0.1, 0.1, 0.1]
-      refractive_attenuation:     [0, 0, 0]
-      diffuse_rate:               [0.7, 0.7, 0.7]
+      refractive_attenuation:     [0.4, 0.4, 0.4]
+      diffuse_rate:               [0.4, 0.4, 0.4]
       refractive_rate:            1.1
       ambient:                    [0.01, 0.01, 0.01]
-      width_front:                0.8
-      width_up:                   2.0
-      width_left:                 0.8
-      point:                      [13, -1.5, -0.5]
-      front:                      [0, 1, 0]
+      width_front:                0.4
+      width_up:                   4.0
+      width_left:                 0.4
+      point:                      [10, -2, 1]
+      front:                      [1, 0, 0]
       up:                         [0, 0, 1]
-
-  -
-    type:                         Sphere
-    properties:
-      name:                       small sphere
-      center:                     [10, -2, 0]
-      radius:                     1
-      refractive_rate:            1.6
-      reflective_attenuation:     [0.1, 0.1, 0.1]
-      refractive_attenuation:     [0.7, 0.7, 0.7]
-      diffuse_rate:               [0.1, 0.1, 0.1]
-      ambient:                    [0.01, 0.01, 0.01]
-

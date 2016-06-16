@@ -10,7 +10,6 @@ module Alex
       attr_accessor :name
       attr_accessor :reflective_attenuation, :refractive_attenuation, :refractive_rate
       attr_accessor :texture_file_path, :texture_horizontal_scale, :texture_vertical_scale
-      attr_accessor :refractive_rate
       attr_reader :texture
       attr_reader :left
       attr_accessor :u_unit, :v_unit
@@ -42,9 +41,9 @@ module Alex
 
       def intersect(ray)
         # 算出直线和平面的交点
-        den = self.front.dot(ray.front)
-        return nil if den == 0
-        t = (self.point - ray.position).dot(self.front) / den
+        denominator = self.front.dot(ray.front)
+        return nil if denominator == 0
+        t = (self.point - ray.position).dot(self.front) / denominator
         intersection = ray.position + ray.front * t
 
         # 检查交点是否在光线正方向
@@ -57,22 +56,18 @@ module Alex
 
       # 根据球和射线的交点获取 法向量, 反射光线, 折射光线
       def intersect_parameters(ray, intersection, direction, delta, data = nil)
-        n = self.front
-        if n.dot(ray.front) > 0
-          n = -n
-        end
-        #
+        n = self.front.dot(ray.front) > 0 ? -self.front : self.front
         reflection = get_reflection_by_ray_and_n(ray, n, intersection, delta)
         if self.refractive_rate
           refraction = get_refraction_by_ray_and_n(ray, n, intersection, reflection.front, self.refractive_rate, delta)
         else
           refraction = nil
         end
-         {
+          {
             n: n,
             reflection: reflection,
             refraction: refraction
-        }
+          }
       end
 
       def inner?(position)

@@ -4,7 +4,13 @@ module Fast4DMatrix
     # method stub
     def self.from_a(a, b, c); raise NotImplementedError; end
     def to_a; raise NotImplementedError; end
-    def to_s; to_a.to_s; end
+    def to_s(n = 6)
+      if n
+        "[#{to_a.map { |x| "%0.#{n}f" % x }.join(', ')}]"
+      else
+        to_a.to_s
+      end
+    end
     def r;  raise NotImplementedError; end
     def r2; raise NotImplementedError; end
     def dot(other); raise NotImplementedError; end

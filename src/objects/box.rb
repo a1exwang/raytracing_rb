@@ -19,16 +19,16 @@ module Alex
         end
         @planes = []
 
+        left = self.front.cross(self.up).normalize
         # up
         up_plane = Plane.create_from_scratch
         up_plane.front = self.up
-        up_plane.up = self.front
+        up_plane.up = left
         up_plane.point = self.point + self.up * self.width_up * 0.5
         up_plane.u_unit, up_plane.v_unit = [self.width_front, self.width_left]
-
         bottom_plane = Plane.create_from_scratch
         bottom_plane.front = -self.up
-        bottom_plane.up = self.front
+        bottom_plane.up = left
         bottom_plane.point = self.point - self.up * self.width_up * 0.5
         bottom_plane.u_unit, bottom_plane.v_unit = [self.width_front, self.width_left]
 
@@ -63,8 +63,13 @@ module Alex
         @planes << back_plane
         @planes << left_plane
         @planes << right_plane
-        @plane_widths = [width_up, width_up, width_front, width_front, width_left, width_left]
-        @planes.each { |p| p.reinit }
+        @planes.each do |p|
+          p.reflective_attenuation = self.reflective_attenuation
+          p.refractive_attenuation = self.refractive_attenuation
+          p.refractive_rate = self.refractive_rate
+          p.diffuse_rate = self.diffuse_rate
+          p.reinit
+        end
       end
 
       def init_texture(file_path)
@@ -76,17 +81,23 @@ module Alex
       end
 
       def intersect(ray)
+        nearest_dis = Float::INFINITY
+        nearest_ret = nil
         @planes.each_with_index do |plane, index|
           intersection, direction, delta = plane.intersect(ray)
           if intersection
             u, v = plane.get_uv(intersection)
             if -0.5 <= u && u <= 0.5 && -0.5 <= v && v <= 0.5
-              data = { index: index }
-              return intersection, direction, delta, data
+              d = (intersection - ray.position).r
+              if d < nearest_dis
+                nearest_dis = d
+                data = { index: index }
+                nearest_ret = [intersection, direction, delta, data]
+              end
             end
           end
         end
-        nil
+        nearest_ret
       end
 
       # 根据球和射线的交点获取 法向量, 反射光线, 折射光线

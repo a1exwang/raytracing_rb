@@ -88,7 +88,7 @@ module Alex
           LOG.logt('rt_map', "reflection: depth: #{rt_ray[:trace_depth]}, position(#{[rt_ray[:x], rt_ray[:y]]})\n" +
               "from(#{rt_ray[:type]}, #{rt_ray[:object]&.name}, #{rt_ray[:ray].front})\n" +
               "on(#{object.name})\n" +
-              "to direction(#{reflection_ray.front.to_s})")
+              "out(#{reflection_ray})")
           reflection = {
               type:         :reflection,
               ray:          reflection_ray,
@@ -108,7 +108,7 @@ module Alex
           LOG.logt('rt_map', "refraction: depth: #{rt_ray[:trace_depth]}, position(#{[rt_ray[:x], rt_ray[:y]]}, #{direction})\n" +
               "from(#{rt_ray[:type]}, #{rt_ray[:object]&.name})\n" +
               "on(#{object.name}, #{intersection})\n" +
-              "to direction(#{refraction_ray.front})")
+              "out(#{refraction_ray})")
           refraction = {
               type:         :refraction,
               ray:          refraction_ray,

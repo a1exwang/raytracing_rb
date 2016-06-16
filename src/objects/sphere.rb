@@ -54,10 +54,12 @@ module Alex
         nearest_dis = (nearest_point - self.center).r
         nearest_point_to_intersection = Math.sqrt(self.radius ** 2 - nearest_dis ** 2)
         vec = ray.front.normalize * nearest_point_to_intersection
-        intersection = nearest_point - vec
 
         from_inner = inner?(ray.position)
         direction = from_inner ? :out : :in
+
+        intersection = direction == :in ? nearest_point - vec : nearest_point + vec
+
         # 球内发出的光线一定和球内壁有交点
         if !from_inner && t < 0
           return nil
