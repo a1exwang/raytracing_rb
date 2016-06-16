@@ -15,4 +15,4 @@ pre_sample_times: 1
 max_sample_times: 1
 variant_threshold: 0.003
 
-trace_depth:      7
+trace_depth:      4

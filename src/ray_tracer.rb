@@ -83,7 +83,6 @@ module Alex
 
         att_reflect, att_refract = object.reflect_refract_vector(rt_ray[:ray], intersection, n, reflection_ray, refraction_ray)
 
-        # reflection
         if reflection_ray
           LOG.logt('rt_map', "reflection: depth: #{rt_ray[:trace_depth]}, position(#{[rt_ray[:x], rt_ray[:y]]})\n" +
               "from(#{rt_ray[:type]}, #{rt_ray[:object]&.name}, #{rt_ray[:ray].front})\n" +
@@ -97,9 +96,7 @@ module Alex
               y:            rt_ray[:y],
               object:       object,
               attenuation:  rt_ray[:attenuation] * att_reflect,
-              parent:       rt_ray,
-              str:          "reflect on #{object.name}"
-                  #object.reflect_attenuation(rt_ray[:ray], intersection, n, reflection_ray)
+              parent:       rt_ray
           }
           ret.first << reflection
         end
@@ -117,27 +114,25 @@ module Alex
               y:            rt_ray[:y],
               object:       object,
               attenuation:  rt_ray[:attenuation] * att_refract,
-              parent:       rt_ray,
-              str:          "refract on #{object.name}"
+              parent:       rt_ray
           }
           ret.first << refraction
         end
 
-        # local lighting model.
         lights = @world.local_lights(intersection + delta, object)
-        lights.each do |light, color|
-          LOG.logt('rt_map', "local: depth: #{rt_ray[:trace_depth]}, position(#{[rt_ray[:x], rt_ray[:y]]})\n" +
-              "from(#{rt_ray[:type]}, #{rt_ray[:object]&.name}, #{rt_ray[:ray].front})\n" +
-              "light(#{light.name}), object(#{object.name})")
-          ret.last << {
-              type: :diffusion,
-              color: rt_ray[:attenuation] * object.local_lighting(color, intersection, light.position, n, rt_ray[:ray]) / lights.size.to_f,
-              x: rt_ray[:x],
-              y: rt_ray[:y],
-              parent: rt_ray,
-              trace_depth: rt_ray[:trace_depth] - 1
-          }
-        end
+        LOG.logt('rt_map', "local: depth: #{rt_ray[:trace_depth]}, position(#{[rt_ray[:x], rt_ray[:y]]})\n" +
+            "from(#{rt_ray[:type]}, #{rt_ray[:object]&.name}, #{rt_ray[:ray].front})\n" +
+            "object(#{object.name})\n" +
+            "lights(#{lights.map { |x| x.first.name }.join(', ')})"
+        )
+        ret.last << {
+            type: :local,
+            color: rt_ray[:attenuation] * object.local_lighting(intersection, lights, n, rt_ray[:ray]),
+            x: rt_ray[:x],
+            y: rt_ray[:y],
+            parent: rt_ray,
+            trace_depth: rt_ray[:trace_depth] - 1
+        }
       else
         LOG.logt('rt_map', "light_dead: depth: #{rt_ray[:trace_depth]}, position(#{[rt_ray[:x], rt_ray[:y]]})\n" +
             "direction = #{rt_ray[:ray].front.to_a.map { |x| x.round(3) }}")

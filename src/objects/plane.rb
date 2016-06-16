@@ -35,10 +35,6 @@ module Alex
         @texture = Alex::Texture.new(file_path, self.texture_horizontal_scale, self.texture_vertical_scale)
       end
 
-      def cover_area(light_position, light_radius, target_position)
-        0
-      end
-
       def intersect(ray)
         # 算出直线和平面的交点
         denominator = self.front.dot(ray.front)
@@ -88,10 +84,10 @@ module Alex
         [u, v]
       end
 
-      def local_lighting(color, position, light_position, normal_vector, ray)
+      def local_lighting(position, light_position, normal_vector, ray, light_filter = Vec3.from_a(1.0, 1.0, 1.0))
         if self.texture
           u, v = get_uv(position)
-          super(color * self.texture.color(u, v), position, light_position, normal_vector, ray)
+          super(position, light_position, normal_vector, ray, self.texture.color(u, v) * light_filter)
         else
           super
         end

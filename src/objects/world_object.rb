@@ -36,17 +36,31 @@ module Alex
         [self.reflective_attenuation, self.refractive_attenuation]
       end
 
-      def local_lighting(light_color, position, light_position, normal_vector, ray)
-        n = normal_vector.normalize
-        l = (light_position - position).normalize
-        l_dot_n = l.dot(n)
-        if l_dot_n > 1
-          l_dot_n = 1.0
-        elsif l_dot_n < 0
-          l_dot_n = 0.0
+      def cover_area(light_position, light_radius, target_position)
+        0
+      end
+
+      def local_lighting(position, lights, normal_vector, ray, color_filter = nil)
+        light_contribution = Vec3.from_a(0.0, 0.0, 0.0)
+        lights.each do |light, light_color|
+          n = normal_vector.normalize
+          l = (light.position - position).normalize
+          l_dot_n = l.dot(n)
+          if l_dot_n > 1
+            l_dot_n = 1.0
+          elsif l_dot_n < 0
+            l_dot_n = 0.0
+          end
+          light_contribution += light_color * l_dot_n
         end
-        light_color *
-            (self.diffuse_rate * l_dot_n + self.ambient)
+        if lights.size > 0
+          light_contribution /= lights.size.to_f
+        end
+        if color_filter
+          light_contribution * self.diffuse_rate * color_filter + self.ambient
+        else
+          light_contribution * self.diffuse_rate + self.ambient
+        end
       end
 
       private

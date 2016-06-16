@@ -76,10 +76,6 @@ module Alex
         @texture = Alex::Texture.new(file_path, self.texture_horizontal_scale, self.texture_vertical_scale)
       end
 
-      def cover_area(light_position, light_radius, target_position)
-        0
-      end
-
       def intersect(ray)
         nearest_dis = Float::INFINITY
         nearest_ret = nil

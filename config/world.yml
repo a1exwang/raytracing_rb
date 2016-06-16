@@ -6,8 +6,8 @@ lights:
     type:               Spot
     properties:
       name:             Main
-      position:         [0, 0, 4]
-      radius:           0.8
+      position:         [0, 0, 0]
+      radius:           1
       color:            [1, 1, 1]
       high_light_rate:  1
       high_light_angle: 3
@@ -50,17 +50,6 @@ world_objects:
       texture_file_path:          ./textures/RubyOnRails.png
       texture_horizontal_scale:   0.03
       texture_vertical_scale:     0.03
-
-#  -
-#    type:                         Plane
-#    properties:
-#      name:                       back wall
-#      point:                      [-5, 0, 0]
-#      front:                      [1, 0, 0]
-#      up:                         [0, 1, 0]
-#      diffuse_rate:               [0, 0, 0]
-#      reflective_attenuation:     [0.8, 0.8, 0.8]
-#      ambient:                    [0.01, 0.01, 0.01]
   -
     type:                         Plane
     properties:
@@ -95,6 +84,24 @@ world_objects:
   -
     type:                         Sphere
     properties:
+      name:                       raspberry sphere
+      center:                     [3, 0, -0.6]
+      radius:                     0.4
+      refractive_rate:            1.1
+      reflective_attenuation:     [0.39, 0.39, 0.39]
+      refractive_attenuation:     [0.1, 0.1, 0.1]
+      diffuse_rate:               [0.5, 0.5, 0.5]
+      ambient:                    [0.01, 0.01, 0.01]
+      greenwich_vec:              [-1, 0, 0]
+      north_pole_vec:             [0, 0, 1]
+      texture_file_path:          ./textures/raspberrypi1.png
+      texture_horizontal_scale:   0.0005
+      texture_vertical_scale:     0.0005
+      texture_u_offset:           0
+      texture_v_offset:           0.2
+  -
+    type:                         Sphere
+    properties:
       name:                       small sphere
       center:                     [7, -2, 0.1]
       radius:                     1.1
@@ -116,6 +123,6 @@ world_objects:
       width_front:                0.4
       width_up:                   4.0
       width_left:                 0.4
-      point:                      [10, -2, 1]
+      point:                      [10, -2.75, 1]
       front:                      [1, 0, 0]
       up:                         [0, 0, 1]

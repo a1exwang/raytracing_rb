@@ -62,9 +62,8 @@ module Alex
     def lit_area(target, light_pos, radius, object)
       total_area = 1
       @world_objects.each do |obj|
-        if (area = obj.cover_area(light_pos, radius, target)) > 0
-          total_area -= area
-        end
+        covered_area = obj.cover_area(light_pos, radius, target)
+        total_area -= covered_area
       end
       total_area
     end
