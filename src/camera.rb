@@ -72,7 +72,7 @@ module Alex
       average = Vec3.from_a(0.0, 0.0, 0.0)
       Array.new(self.pre_sample_times) do |j|
         ray = lens_func(x, y, j)
-        v =  @ray_tracer.trace_sync(x, y, ray)
+        v =  @ray_tracer.path_trace_sync(x, y, ray)
         pre_samples << v
         average += v
       end
@@ -88,7 +88,7 @@ module Alex
         color_vec = Vec3.from_a(0.0, 0.0, 0.0)
         (self.pre_sample_times...self.max_sample_times).each do |j|
           ray = lens_func(x, y, j)
-          color_vec += @ray_tracer.trace_sync(x, y, ray)
+          color_vec += @ray_tracer.path_trace_sync(x, y, ray)
         end
         average = (average * self.pre_sample_times.to_f + color_vec) / self.max_sample_times.to_f
       else

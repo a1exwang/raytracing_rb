@@ -11,9 +11,9 @@ focal_distance:   0.017   # for human-beings, 17mm
 width:            192
 height:           108
 
-pre_sample_times: 1
-max_sample_times: 1
+pre_sample_times: 8
+max_sample_times: 40
 variant_threshold: 0.001
 
 trace_depth:      4
-monte_carlo_diffusion_times: 3
+monte_carlo_diffusion_times: 1

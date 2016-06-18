@@ -96,5 +96,17 @@ module Alex
       end
       ret
     end
+
+    def diffuse_ray()
+      front = n.normalize
+      left = get_a_random_vertical_vector(n).normalize
+      up = front.cross(left)
+      # theta是俯仰角(0-90度, 只取夹角和n小于90度的向量), phi是方位角,
+      theta, phi = Random.rand * Math::PI / 2, Random.rand * Math::PI * 2
+      direction = front * Math.sin(theta) + (left * Math.cos(phi) + up * Math.sin(phi)) * Math.cos(theta)
+      ray = Alex::Ray.new(direction, intersection)
+      ret << [ray, att]
+    end
+
   end
 end

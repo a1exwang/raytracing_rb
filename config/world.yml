@@ -6,7 +6,7 @@ lights:
     type:               Spot
     properties:
       name:             Main
-      position:         [-1, -3, 2]
+      position:         [5, -4, 0.9]
       radius:           0.8
       color:            [1, 1, 1]
       high_light_rate:  1
@@ -24,9 +24,15 @@ world_objects:
       v_unit:                     1
       specular_power:             3
       specular_rate:              [0.2, 0.2, 0.2]
-      diffuse_rate:               [0.3, 0.3, 0.3]
-      reflective_attenuation:     [0.4, 0.4, 0.4]
+      diffuse_rate:               [1.0, 1.0, 1.0]
+      reflective_attenuation:     [1.0, 1.0, 1.0]
       ambient:                    [0.01, 0.01, 0.01]
+
+      reflect_probability:        0.4
+      refract_probability:        0.0
+      diffuse_probability:        0.6
+      ambient_probability:        0.1
+
       texture_file_path:          ./textures/floor.jpg
       texture_horizontal_scale:   0.01
       texture_vertical_scale:     0.06
@@ -44,85 +50,93 @@ world_objects:
       v_unit:                     1
       specular_power:             3
       specular_rate:              [0.2, 0.2, 0.2]
-      diffuse_rate:               [0.3, 0.3, 0.3]
-      reflective_attenuation:     [0.5, 0.5, 0.5]
-      ambient:                    [0.1, 0.1, 0.1]
+      diffuse_rate:               [1, 1, 1]
+      reflective_attenuation:     [1, 1, 1]
+      ambient:                    [1, 1, 1]
+      reflect_probability:        0.4
+      refract_probability:        0.0
+      diffuse_probability:        0.5
+      ambient_probability:        0.1
       texture_file_path:          ./textures/RubyOnRails.png
       texture_horizontal_scale:   0.015
       texture_vertical_scale:     0.015
-  -
-    type:                         Plane
-    properties:
-      name:                       left wall
-      point:                      [0, 4, 0]
-      front:                      [0, -1, 0]
-      up:                         [0, 0, 1]
-      diffuse_rate:               [0, 0.7, 0]
-      reflective_attenuation:     [0.02, 0.02, 0.02]
-      ambient:                    [0.1, 0.1, 0.1]
-  -
-    type:                         Plane
-    properties:
-      name:                       right wall
-      point:                      [0, -4, 0]
-      front:                      [0, 1, 0]
-      up:                         [0, 0, 1]
-      diffuse_rate:               [0.7, 0, 0]
-      reflective_attenuation:     [0.2, 0.2, 0.2]
-      ambient:                    [0.1, 0.1, 0.1]
-  -
-    type:                         Sphere
-    properties:
-      name:                       big sphere
-      center:                     [2.4, 1, -0.7]
-      radius:                     0.3
-      refractive_rate:            1.1
-      reflective_attenuation:     [0.6, 0.6, 0.6]
-      refractive_attenuation:     [0, 0, 0]
-      diffuse_rate:               [0.3, 0.3, 0.3]
-      ambient:                    [0.01, 0.01, 0.01]
-  -
-    type:                         Sphere
-    properties:
-      name:                       raspberry sphere
-      center:                     [3, 0.7, -0.6]
-      radius:                     0.4
-      refractive_rate:            1.1
-      reflective_attenuation:     [0.39, 0.39, 0.39]
-      refractive_attenuation:     [0.1, 0.1, 0.1]
-      diffuse_rate:               [0.5, 0.5, 0.5]
-      ambient:                    [0.01, 0.01, 0.01]
-      greenwich_vec:              [-1, 0, 0]
-      north_pole_vec:             [0, 0, 1]
-      texture_file_path:          ./textures/raspberrypi1.png
-      texture_horizontal_scale:   0.0005
-      texture_vertical_scale:     0.0005
-      texture_u_offset:           0
-      texture_v_offset:           0.2
+
+#  -
+#    type:                         Plane
+#    properties:
+#      name:                       left wall
+#      point:                      [0, 4, 0]
+#      front:                      [0, -1, 0]
+#      up:                         [0, 0, 1]
+#      diffuse_rate:               [0, 0.7, 0]
+#      reflective_attenuation:     [0.02, 0.02, 0.02]
+#      ambient:                    [0.1, 0.1, 0.1]
+#  -
+#    type:                         Plane
+#    properties:
+#      name:                       right wall
+#      point:                      [0, -4, 0]
+#      front:                      [0, 1, 0]
+#      up:                         [0, 0, 1]
+#      diffuse_rate:               [0.7, 0, 0]
+#      reflective_attenuation:     [0.2, 0.2, 0.2]
+#      ambient:                    [0.1, 0.1, 0.1]
+#  -
+#    type:                         Sphere
+#    properties:
+#      name:                       big sphere
+#      center:                     [2.4, 1.5, -0.7]
+#      radius:                     0.3
+#      refractive_rate:            1.1
+#      reflective_attenuation:     [0.6, 0.6, 0.6]
+#      refractive_attenuation:     [0, 0, 0]
+#      diffuse_rate:               [0.3, 0.3, 0.3]
+#      ambient:                    [0.01, 0.01, 0.01]
+#  -
+#    type:                         Sphere
+#    properties:
+#      name:                       raspberry sphere
+#      center:                     [3, 0.7, -0.6]
+#      radius:                     0.4
+#      refractive_rate:            1.1
+#      reflective_attenuation:     [0.39, 0.39, 0.39]
+#      refractive_attenuation:     [0.1, 0.1, 0.1]
+#      diffuse_rate:               [0.5, 0.5, 0.5]
+#      ambient:                    [0.01, 0.01, 0.01]
+#      greenwich_vec:              [-1, 0, 0]
+#      north_pole_vec:             [0, 0, 1]
+#      texture_file_path:          ./textures/raspberrypi1.png
+#      texture_horizontal_scale:   0.0005
+#      texture_vertical_scale:     0.0005
+#      texture_u_offset:           0
+#      texture_v_offset:           0.2
   -
     type:                         Sphere
     properties:
       name:                       small sphere
-      center:                     [7, -2, 0.1]
-      radius:                     1.1
+      center:                     [5, -2, -0.3]
+      radius:                     0.7
       refractive_rate:            1.6
-      reflective_attenuation:     [0.1, 0.1, 0.1]
-      refractive_attenuation:     [0.7, 0.7, 0.7]
-      diffuse_rate:               [0.1, 0.1, 0.1]
+      reflective_attenuation:     [1.0, 1.0, 1.0]
+      refractive_attenuation:     [1.0, 1.0, 1.0]
+      diffuse_rate:               [1.0, 1.0, 1.0]
       ambient:                    [0.01, 0.01, 0.01]
-  -
-    type:                         Box
-    properties:
-      name:                       big box
-      refractive_rate:            1.1
-      reflective_attenuation:     [0.1, 0.1, 0.1]
-      refractive_attenuation:     [0.4, 0.4, 0.4]
-      diffuse_rate:               [0.4, 0.4, 0.4]
-      refractive_rate:            1.1
-      ambient:                    [0.01, 0.01, 0.01]
-      width_front:                0.4
-      width_up:                   4.0
-      width_left:                 0.4
-      point:                      [10, -2.2, 1]
-      front:                      [1, 0, 0]
-      up:                         [0, 0, 1]
+      reflect_probability:        0.1
+      refract_probability:        0.8
+      diffuse_probability:        0.1
+#  -
+#    type:                         Box
+#    properties:
+#      name:                       big box
+#      refractive_rate:            1.1
+#      reflective_attenuation:     [0.1, 0.1, 0.1]
+#      refractive_attenuation:     [0.4, 0.4, 0.4]
+#      diffuse_rate:               [0.4, 0.4, 0.4]
+#      refractive_rate:            1.1
+#      ambient:                    [0.01, 0.01, 0.01]
+#      width_front:                0.4
+#      width_up:                   4.0
+#      width_left:                 0.4
+#      point:                      [10, -2.2, 1]
+#      front:                      [1, 0, 0]
+#      up:                         [0, 0, 1]

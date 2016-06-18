@@ -9,6 +9,8 @@ module Alex
       attr_accessor :refractive_attenuation, :reflective_attenuation, :diffuse_rate, :ambient
       attr_accessor :texture
 
+      attr_accessor :reflect_probability, :refract_probability, :diffuse_probability
+
       def initialize(hash)
         hash.each do |key, value|
           instance_variable_set('@' + key.to_s, value)
@@ -85,6 +87,18 @@ module Alex
           ret << [ray, att]
         end
         ret
+      end
+
+      def diffuse_ray(intersection, n)
+        att = self.diffuse_rate
+        front = n.normalize
+        left = get_a_random_vertical_vector(n).normalize
+        up = front.cross(left)
+        # theta是俯仰角(0-90度, 只取夹角和n小于90度的向量), phi是方位角,
+        theta, phi = Random.rand * Math::PI / 2, Random.rand * Math::PI * 2
+        direction = front * Math.sin(theta) + (left * Math.cos(phi) + up * Math.sin(phi)) * Math.cos(theta)
+        ray = Alex::Ray.new(direction, intersection)
+        [ray, att]
       end
 
       private
