@@ -8,9 +8,9 @@ require_relative 'lights/spot_light'
 
 module Alex
   class World < ConfigurableObject
-    attr_accessor :ambient_light
     attr_accessor :max_distance
     attr_accessor :trace_depth
+    attr_accessor :soft_shadow_exponent
 
     def initialize(config_file)
       super(config_file)
@@ -62,18 +62,18 @@ module Alex
     def lit_area(target, light_pos, radius, object)
       total_area = 1
       @world_objects.each do |obj|
-        covered_area = obj.cover_area(light_pos, radius, target)
-        total_area -= covered_area
+         covered_area = obj.cover_area(light_pos, radius, target)
+         total_area -= covered_area
       end
-      total_area
+      [total_area, 0].max
     end
 
     # 获得对某点的diffusion有贡献的所有光源, 以及光源照到的面积
     def local_lights(position, object)
       ret = []
       @lights.each do |light|
-        if (area = lit_area(position, light.position, light.radius, object).to_f) > 0
-          ret << [light, light.color * area]
+        if (area = lit_area(position, light.position, light.radius, object)) > 0
+          ret << [light, light.color * (area.to_f**self.soft_shadow_exponent / @lights.size)]
         end
       end
       ret

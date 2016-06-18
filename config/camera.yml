@@ -1,11 +1,11 @@
-position:         [0, 0, -0.5]
+position:         [0, 0, 0]
 up:               [0, 0, 1]
 front:            [1, 0, 0]
 
 retina_width:     0.016   # for human-beings, ~24mm
 retina_height:    0.009
-aperture_radius:  0.0002  # for human-beings, 3mm ~ 4mm
-image_distance:   0.01714573877962683 # for human-beings, ~3cm
+aperture_radius:  0.001  # for human-beings, 3mm ~ 4mm
+image_distance:   0.01714573877962683 # for human-beings, ~3cm # 0.01714573877962683(2), 0.01709688233322159(3)
 focal_distance:   0.017   # for human-beings, 17mm
 
 width:            192
@@ -13,6 +13,7 @@ height:           108
 
 pre_sample_times: 1
 max_sample_times: 1
-variant_threshold: 0.003
+variant_threshold: 0.001
 
 trace_depth:      4
+monte_carlo_diffusion_times: 3

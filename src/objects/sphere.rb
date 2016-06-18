@@ -25,34 +25,36 @@ module Alex
         @texture = Alex::Texture.new(file_path, self.texture_horizontal_scale, self.texture_vertical_scale, self.texture_u_offset, self.texture_v_offset)
       end
 
-      # def cover_area(light_position, light_radius, target_position)
-      #   # 解出包含球心的平面上, 并且在锥面中线上的点x1
-      #   t = (self.center - target_position).dot(light_position - target_position) / (light_position - target_position).r2
-      #   x1 = target_position + (light_position - target_position) * t
-      #   r1 = light_radius * ((x1 - target_position).r / (light_position - target_position).r)
-      #
-      #   # 判断两圆的位置关系
-      #   d = (x1 - center).r
-      #   if d >= r1 + self.radius
-      #     0
-      #   else
-      #     s1 = Math::PI * r1 * r1
-      #     if d > (self.radius - r1).abs
-      #       cos_theta1 = [(r1 * r1 + d * d - self.radius * self.radius) / (2 * r1 * d), 1.0].min
-      #       cos_theta2 = [(self.radius * self.radius + d * d - r1 * r1) / (2 * self.radius * d), 1.0].min
-      #       theta1 = Math.acos(cos_theta1)
-      #       theta2 = Math.acos(cos_theta2)
-      #       delta_s = ((theta1 - Math.sin(theta1)) * r1 * r1 + (theta2 - Math.sin(theta2)) * self.radius * self.radius) / 2
-      #       delta_s / s1
-      #     else
-      #       if r1 > self.radius
-      #         Math::PI * self.radius * self.radius / s1
-      #       else
-      #         1
-      #       end
-      #     end
-      #   end
-      # end
+      def cover_area(light_position, light_radius, target_position)
+        factor = super
+
+        # 解出包含球心的平面上, 并且在锥面中线上的点x1
+        t = (self.center - target_position).dot(light_position - target_position) / (light_position - target_position).r2
+        x1 = target_position + (light_position - target_position) * t
+        r1 = light_radius * ((x1 - target_position).r / (light_position - target_position).r)
+
+        # 判断两圆的位置关系
+        d = (x1 - center).r
+        if d >= r1 + self.radius
+          0
+        else
+          s1 = Math::PI * r1 * r1
+          if d > (self.radius - r1).abs
+            cos_theta1 = [(r1 * r1 + d * d - self.radius * self.radius) / (2 * r1 * d), 1.0].min
+            cos_theta2 = [(self.radius * self.radius + d * d - r1 * r1) / (2 * self.radius * d), 1.0].min
+            theta1 = Math.acos(cos_theta1)
+            theta2 = Math.acos(cos_theta2)
+            delta_s = ((theta1 - Math.sin(theta1)) * r1 * r1 + (theta2 - Math.sin(theta2)) * self.radius * self.radius) / 2
+            factor * delta_s / s1
+          else
+            if r1 > self.radius
+              factor * Math::PI * self.radius * self.radius / s1
+            else
+              factor
+            end
+          end
+        end
+      end
 
       # 球和射线的第一个交点
       def intersect(ray)

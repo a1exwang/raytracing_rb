@@ -37,7 +37,13 @@ module Alex
       end
 
       def cover_area(light_position, light_radius, target_position)
-        0
+        ray = Alex::Ray.new(light_position - target_position, target_position)
+        intersection, *_ = intersect(ray)
+        if intersection && (intersection - light_position).dot(target_position - light_position) > 0
+          1
+        else
+          0
+        end
       end
 
       def local_lighting(position, lights, normal_vector, ray, color_filter = nil)
@@ -50,6 +56,8 @@ module Alex
             l_dot_n = 1.0
           elsif l_dot_n < 0
             l_dot_n = 0.0
+          else
+            # l_dot_n = Math.sqrt l_dot_n
           end
           light_contribution += light_color * l_dot_n
         end
@@ -63,7 +71,39 @@ module Alex
         end
       end
 
+      def path_tracing(intersection, n, pt_times)
+        ret = []
+        att = self.diffuse_rate / pt_times.to_f
+        pt_times.times do
+          front = n.normalize
+          left = get_a_random_vertical_vector(n).normalize
+          up = front.cross(left)
+          # theta是俯仰角(0-90度, 只取夹角和n小于90度的向量), phi是方位角,
+          theta, phi = Random.rand * Math::PI / 2, Random.rand * Math::PI * 2
+          direction = front * Math.sin(theta) + (left * Math.cos(phi) + up * Math.sin(phi)) * Math.cos(theta)
+          ray = Alex::Ray.new(direction, intersection)
+          ret << [ray, att]
+        end
+        ret
+      end
+
       private
+      def get_a_random_vertical_vector(n)
+        raise 'zero vector detected' if n.r == 0
+        a = n.to_a
+        if a[0] == 0
+          if a[1] == 0
+            # x = 0 and y = 0, z != 0
+            Vec3.from_a(1.0, 0.0, 0.0)
+          else
+            # x = 0 but y != 0
+            Vec3.from_a(0.0, -a[2]/a[1], 1.0)
+          end
+        else
+          # x != 0
+          Vec3.from_a(-(a[1]+a[2]) / a[0], 1.0, 1.0)
+        end
+      end
       def get_reflection_by_ray_and_n(ray, n, intersection, delta)
         cos_theta = ray.front.cos(-n)
         front = (n.normalize * (2 * cos_theta * ray.front.r) + ray.front).normalize

@@ -21,8 +21,7 @@ module Alex
     attr_accessor :retina_width, :retina_height
     attr_accessor :trace_depth
     attr_accessor :max_sample_times, :pre_sample_times, :variant_threshold
-
-    THREAD_COUNT = 24
+    attr_accessor :monte_carlo_diffusion_times
 
     def initialize(world, config_file)
       @width = 0
@@ -30,91 +29,84 @@ module Alex
 
       super(config_file)
       @world = world
-      @ray_tracer = RayTracer.new(world, self.trace_depth, @width, @height)
+      @ray_tracer = RayTracer.new(world, self.trace_depth, @width, @height, monte_carlo_diffusion_times)
+      @canvas = PNG::Canvas.new(@width, @height, PNG::Color::Black)
     end
 
-    def render_fork(file_name)
+    def save_image(file_path)
+      png = PNG.new @canvas
+      png.save file_path
+    end
+
+    def render_fork(file_path, threads)
       parent_work = lambda do
-        canvas = PNG::Canvas.new(@width, @height, PNG::Color::Black)
-        THREAD_COUNT.times do |i|
+        threads.times do |i|
           data = JSON.parse(File.read("out/file_#{i}.json"))
-          data.each do |x, v|
-            v.each do |y, color|
-              canvas.point(x, y, vector_to_color(Vec3.from_a(*color)))
-            end
+          data.each do |item|
+            x, y = item['position']
+            color = item['color']
+            @canvas.point(x, y, array_to_color(color))
           end
         end
-        png = PNG.new canvas
-        png.save file_name
+        save_image(file_path)
       end
       child_work = lambda do |i|
-        start_x, end_x = 0, @width
-        start_y, end_y = (i / 4.0 * @height).to_i, ((i+1) / 4.0 * @height).to_i
+        start_x, end_x = (i.to_f / threads * @width).to_i, ((i+1).to_f / threads * @width).to_i
+        start_y, end_y = 0, @height
 
-        data = {}
+        puts "child##{i}, start_x, end_x: #{start_x}, #{end_x}"
+        data = []
         (start_x...end_x).each do |x|
-          data[x] = {}
           (start_y...end_y).each do |y|
-            ray = lens_func(x, y)
-            color_vec = Vec3.from_a(0.0, 0.0, 0.0)
-            sample_times = 1
-            sample_times.times do
-              color_vec += @ray_tracer.trace_sync(x, y, ray)
-            end
-            data[x][y] = color_vec / sample_times.to_f
+            data <<  render_at(x, y)
           end
         end
         File.write("out/file_#{i}.json", data.to_json)
       end
 
-      fork_jobs(4, parent_work, &child_work)
+      fork_jobs(threads, parent_work, child_work)
     end
 
-    def render_sync(file_name)
-      canvas = PNG::Canvas.new(@width, @height, PNG::Color::Black)
-
-      i = 0
-      ten_count = 0
-      @width.times do |x|
-        @height.times do |y|
-          pre_samples = []
-          average = Vec3.from_a(0.0, 0.0, 0.0)
-          Array.new(self.pre_sample_times) do |j|
-            ray = lens_func(x, y, j)
-            v =  @ray_tracer.trace_sync(x, y, ray)
-            pre_samples << v
-            average += v
-          end
-
-          variance = 0
-          average /= self.pre_sample_times.to_f
-          self.pre_sample_times.times do |j|
-            variance += (pre_samples[j] - average).to_a.max ** 2
-          end
-          variance /= self.pre_sample_times
-
-          if variance >= self.variant_threshold
-            color_vec = Vec3.from_a(0.0, 0.0, 0.0)
-            (self.pre_sample_times...self.max_sample_times).each do |j|
-              ray = lens_func(x, y, j)
-              color_vec += @ray_tracer.trace_sync(x, y, ray)
-            end
-            ten_count += 1
-            average = (average * self.pre_sample_times.to_f + color_vec) / self.max_sample_times.to_f
-          else
-            average
-          end
-
-          canvas.point(x, @height - 1 - y, vector_to_color(average))
-          i += 1
-        end
-        puts "Progress: #{(i.to_f / @width / @height * 100).round(2)}%" if i % 100 == 0
+    def render_at(x, y)
+      pre_samples = []
+      average = Vec3.from_a(0.0, 0.0, 0.0)
+      Array.new(self.pre_sample_times) do |j|
+        ray = lens_func(x, y, j)
+        v =  @ray_tracer.trace_sync(x, y, ray)
+        pre_samples << v
+        average += v
       end
 
-      puts "ten_count: #{ten_count}"
+      variance = 0
+      average /= self.pre_sample_times.to_f
+      self.pre_sample_times.times do |j|
+        variance += (pre_samples[j] - average).to_a.max ** 2
+      end
+      variance /= self.pre_sample_times
 
-      png = PNG.new canvas
-      png.save file_name
+      if variance >= self.variant_threshold
+        color_vec = Vec3.from_a(0.0, 0.0, 0.0)
+        (self.pre_sample_times...self.max_sample_times).each do |j|
+          ray = lens_func(x, y, j)
+          color_vec += @ray_tracer.trace_sync(x, y, ray)
+        end
+        average = (average * self.pre_sample_times.to_f + color_vec) / self.max_sample_times.to_f
+      else
+        average
+      end
+
+      { position: [x, @height - 1 - y], color: average.to_a }
+    end
+
+    def render_sync(file_path)
+      @width.times do |x|
+        @height.times do |y|
+          item = render_at(x, y)
+          @canvas.point(*item[:position], array_to_color(item[:color]))
+        end
+        puts "Progress: #{(100.0 * x / @width).round(2)}%" if x % 10 == 0
+      end
+      save_image(file_path)
     end
 
     private
@@ -158,9 +150,8 @@ module Alex
       Ray.new(target_point - aperture_position, aperture_position)
     end
 
-    def vector_to_color(vec)
-      # raise 'color vector not 3-dimension' unless vec.size == 3
-      x, y, z = (vec*(1*255.0)).to_a
+    def array_to_color(arr)
+      x, y, z = arr.map { |x| x*256.0 }
       PNG::Color.new([x, 255].min, [y, 255].min, [z, 255].min)
     end
   end

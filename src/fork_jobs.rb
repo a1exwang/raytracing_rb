@@ -1,4 +1,4 @@
-def fork_jobs(jobs, parent_work, &child_work)
+def fork_jobs(jobs, parent_work, child_work)
   threads = []
   pids = []
   is_parent = true
@@ -17,6 +17,7 @@ def fork_jobs(jobs, parent_work, &child_work)
     else
       is_parent = false
       child_work.call(i)
+      break
     end
   end
 

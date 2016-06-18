@@ -15,7 +15,7 @@
       </COVERAGE_PATTERN>
     </EXTENSION>
     <RUBY_RUN_CONFIG NAME="SCRIPT_PATH" VALUE="$MODULE_DIR$/src/main.rb" />
-    <RUBY_RUN_CONFIG NAME="SCRIPT_ARGS" VALUE="" />
+    <RUBY_RUN_CONFIG NAME="SCRIPT_ARGS" VALUE="s image.png config/world.yml config/camera.yml" />
     <method />
   </configuration>
 </component>

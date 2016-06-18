@@ -4,12 +4,13 @@ require_relative '../lib/fast_4d_matrix/fast_4d_matrix'
 include Fast4DMatrix
 module Alex
   class RayTracer
-    def initialize(world, trace_depth, width, height)
+    def initialize(world, trace_depth, width, height, monte_carlo_diffusion_times)
       @world = world
       @trace_depth = trace_depth
       @queue = []
       @light_queues = Array.new(width) { Array.new(height) { Queue.new } }
       @queue_size = 0
+      @monte_carlo_diffusion_times = monte_carlo_diffusion_times
     end
 
     def trace_sync(x, y, ray)
@@ -56,22 +57,22 @@ module Alex
 
       # 首先判断是不是直接射到光源
       # high light
-      # lights = @world.high_lights(rt_ray[:ray], rt_ray[:object])
-      # lights.each do |light, color|
-      #   LOG.logt('rt_map', "high_light: from(#{light.name}), to(#{rt_ray[:object]&.name})", 4)
-      #   ret.last << {
-      #       type: :high_light,
-      #       color: rt_ray[:attenuation] * color / lights.size.to_f,
-      #       x: rt_ray[:x],
-      #       y: rt_ray[:y],
-      #       parent: rt_ray,
-      #       str: "highlight on #{light.name}",
-      #       trace_depth: rt_ray[:trace_depth] - 1
-      #   }
-      # end
-      #
-      # # 如果是高光项, 那么不可能再传播
-      # return ret if ret.last.size > 0
+      lights = @world.high_lights(rt_ray[:ray], rt_ray[:object])
+      lights.each do |light, color|
+        LOG.logt('rt_map', "high_light: from(#{light.name}), to(#{rt_ray[:object]&.name})", 4)
+        ret.last << {
+            type: :high_light,
+            color: rt_ray[:attenuation] * color / lights.size.to_f,
+            x: rt_ray[:x],
+            y: rt_ray[:y],
+            parent: rt_ray,
+            str: "highlight on #{light.name}",
+            trace_depth: rt_ray[:trace_depth] - 1
+        }
+      end
+
+      # 如果是高光项, 那么不可能再传播
+      return ret if ret.last.size > 0
 
       # intersection
       object, intersection, direction, delta, data = @world.intersect(rt_ray[:ray])
@@ -120,19 +121,41 @@ module Alex
         end
 
         lights = @world.local_lights(intersection + delta, object)
-        LOG.logt('rt_map', "local: depth: #{rt_ray[:trace_depth]}, position(#{[rt_ray[:x], rt_ray[:y]]})\n" +
-            "from(#{rt_ray[:type]}, #{rt_ray[:object]&.name}, #{rt_ray[:ray].front})\n" +
-            "object(#{object.name})\n" +
-            "lights(#{lights.map { |x| x.first.name }.join(', ')})"
-        )
-        ret.last << {
-            type: :local,
-            color: rt_ray[:attenuation] * object.local_lighting(intersection, lights, n, rt_ray[:ray]),
-            x: rt_ray[:x],
-            y: rt_ray[:y],
-            parent: rt_ray,
-            trace_depth: rt_ray[:trace_depth] - 1
-        }
+        if lights.size == 0
+          # # use path tracing to calculate diffusion
+          # puts "path tracing at #{rt_ray[:x]}, #{rt_ray[:y]}"
+          # LOG.logt('rt_map', "path_tracing: depth: #{rt_ray[:trace_depth]}, position(#{[rt_ray[:x], rt_ray[:y]]})\n" +
+          #     "from(#{rt_ray[:type]}, #{rt_ray[:object]&.name}, #{rt_ray[:ray].front})\n" +
+          #     "object(#{object.name})\n" +
+          #     "lights(#{lights.map { |x| x.first.name }.join(', ')})")
+          # path_tracing_rays = object.path_tracing(intersection + delta, n, @monte_carlo_diffusion_times)
+          # path_tracing_rays.each do |pt_ray, pt_att|
+          #   ret.first << {
+          #       type: :path_tracing,
+          #       ray: pt_ray,
+          #       trace_depth: rt_ray[:trace_depth] - 1,
+          #       x: rt_ray[:x],
+          #       y: rt_ray[:y],
+          #       object: object,
+          #       attenuation: rt_ray[:attenuation] * pt_att,
+          #       parent: rt_ray
+          #   }
+          # end
+        else
+          # normal diffusion
+          LOG.logt('rt_map', "local: depth: #{rt_ray[:trace_depth]}, position(#{[rt_ray[:x], rt_ray[:y]]})\n" +
+              "from(#{rt_ray[:type]}, #{rt_ray[:object]&.name}, #{rt_ray[:ray].front})\n" +
+              "object(#{object.name})\n" +
+              "lights(#{lights.map { |x| x.first.name }.join(', ')})")
+          ret.last << {
+              type: :local,
+              color: rt_ray[:attenuation] * object.local_lighting(intersection, lights, n, rt_ray[:ray]),
+              x: rt_ray[:x],
+              y: rt_ray[:y],
+              parent: rt_ray,
+              trace_depth: rt_ray[:trace_depth] - 1
+          }
+        end
       else
         LOG.logt('rt_map', "light_dead: depth: #{rt_ray[:trace_depth]}, position(#{[rt_ray[:x], rt_ray[:y]]})\n" +
             "direction = #{rt_ray[:ray].front.to_a.map { |x| x.round(3) }}")
